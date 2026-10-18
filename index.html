@@ -16,11 +16,14 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--text:#fff;--text2:#98989f;--text3:#8e8e93;--sep:#38383a;--fill:#2c2c2e;--accent:#0a84ff;--accentbg:rgba(10,132,255,.22);--danger:#ff453a;--warn:#ff9f0a;--nav:rgba(28,28,30,.94);--onacc:#fff;--shadow:none}}
 :root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--text:#fff;--text2:#98989f;--text3:#8e8e93;--sep:#38383a;--fill:#2c2c2e;--accent:#0a84ff;--accentbg:rgba(10,132,255,.22);--danger:#ff453a;--warn:#ff9f0a;--nav:rgba(28,28,30,.94);--onacc:#fff;--shadow:none}
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+body.locked .scroll{overflow:hidden}
 body{background:var(--bg);color:var(--text);font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button,input,select,textarea{font:inherit;color:inherit}
-body.locked .wrap{overflow:hidden;height:100dvh}
-.wrap{max-width:520px;margin:0 auto;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+
+.wrap{max-width:520px;margin:0 auto;padding-bottom:24px}
 h1{font-size:32px;font-weight:700;margin:14px 16px 8px;letter-spacing:-.3px}
 .sec{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin:20px 20px 6px}
 .card{background:var(--card);border-radius:16px;margin:0 16px 12px;padding:14px 16px;box-shadow:var(--shadow)}
@@ -58,7 +61,7 @@ textarea{resize:vertical;min-height:40px}
 .snav .l{justify-self:start}
 .sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch}
 .sheet>.in{max-width:520px;margin:0 auto;padding-bottom:calc(130px + env(safe-area-inset-bottom))}
-.tabbar{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;display:flex;background:var(--nav);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+.tabbar{flex:none;width:100%;max-width:520px;margin:0 auto;display:flex;background:var(--nav);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom);z-index:10}
 .tabbar button{flex:1;background:none;border:0;padding:6px 0 8px;min-height:56px;color:var(--text3);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;cursor:pointer}
 .tabbar button.on{color:var(--accent)}
 .tabbar .tico{width:27px;height:27px}
@@ -103,6 +106,11 @@ textarea{resize:vertical;min-height:40px}
 .exfig .tl{stroke:var(--text);stroke-width:2;fill:var(--card)}
 .exfig .cb{stroke:var(--text3);stroke-width:1.5;fill:none}
 .exfig .pl{stroke:var(--text);stroke-width:3;stroke-linecap:round}
+.ovth{width:92px;height:64px;flex:none;border-radius:10px;overflow:hidden;background:#EEF0F3;position:relative}.ovth img{position:absolute;left:0;top:0;height:100%;width:auto;max-width:none}.ovth svg{width:100%;height:100%;display:block}
+.ovrow{display:flex;gap:12px;align-items:center;padding:10px 12px 10px 16px;border-top:.5px solid var(--sep)}.ovrow:first-child{border-top:0}.ovn{font-weight:600;line-height:1.2}.ovmv{display:flex;gap:2px;flex:none}.ovmv .iconbtn:disabled{opacity:.25}
+.exfig{margin:0 16px 12px}
+.sumtop{text-align:center;padding:6px 16px 2px}.sumtop b{font-size:24px;letter-spacing:-.3px;display:block}
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 16px}.sumgrid>div{background:var(--card);border-radius:14px;padding:12px 6px;text-align:center;box-shadow:var(--shadow)}.sumgrid b{display:block;font-size:20px}.sumgrid span{font-size:12px;color:var(--text2)}
 .exph{display:block;width:100%;border-radius:12px;background:#EEF0F3};align-items:center;gap:8px}
 .frames>div{flex:1;text-align:center;font-size:12px;color:var(--text2);min-width:0}
 .frames>.arr{flex:none;font-size:20px;color:var(--text2)}
@@ -394,6 +402,7 @@ function freshDef(){return{v:1,themeMig:true,onboarded:false,drafts:[],profile:{
 function load(){const d=freshDef();try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);if(!p.themeMig){p.profile=p.profile||{};p.profile.theme='light';p.themeMig=true;}return Object.assign(d,p);}}catch(e){console.warn(e);}return d;}
 let S=load();
 const UI={tab:'home',mapView:'body',cur:{},wkView:'card',run:null,stopped:null,stack:[],view:null,hm:ld().slice(0,7),hday:null,hf:{type:'',gym:'',group:''},period:'month',metric:'sets',progEx:'',pickQ:'',pickG:'',undo:null,tt:0,rest:null,activeX:null};
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Не хватает места для сохранения');}}
 function ctx(){if(!UI.view)return S;const st=S.students.find(s=>s.id===UI.view);return st?st.data:S;}
 function own(){return !UI.view;}
@@ -417,23 +426,24 @@ function getWEx(wid,xid){const w=findW(wid);const ex=w&&w.exercises.find(e=>e.ui
 function getSet(k){const[wid,xid,i]=k.split('|');const{w,ex}=getWEx(wid,xid);return{w,ex,s:ex&&ex.sets[+i],i:+i};}
 function snapshot(reason){const{snaps,...rest}=S;S.snaps=[{id:uid('s'),at:new Date().toISOString(),reason,json:JSON.stringify(rest)}].concat(S.snaps||[]).slice(0,10);}
 function snapshotDaily(){if(S.lastSnapDay!==ld()&&(S.workouts.length||S.gyms.length)){snapshot('день');S.lastSnapDay=ld();save();}}
-function backupDue(){const since=S.lastBackupAt||'';const n=S.workouts.filter(w=>w.status==='done'&&(!since||(w.endedAt||0)>new Date(since).getTime())).length;return n>=5;}
+function backupAge(){return S.lastBackupAt?dayDiff(ld(),S.lastBackupAt.slice(0,10)):null;}
+function backupDue(){const hasData=S.workouts.some(w=>w.status==='done');if(!hasData)return false;if(S.backupSnooze&&S.backupSnooze>Date.now())return false;const a=backupAge();if(a===null||a>=14)return true;const since=S.lastBackupAt||'';const n=S.workouts.filter(w=>w.status==='done'&&(!since||(w.endedAt||0)>new Date(since).getTime())).length;return n>=5;}
 
 /* ============ rendering: tabs ============ */
 function paint(){
   document.documentElement.dataset.theme=S.profile.theme==='auto'?'':S.profile.theme;
   const D=ctx();
   // remember scroll positions so a re-render does not jump to the top
-  const oldSheet=$('#sheets .sheet');const hadSheet=!!oldSheet;const wY=window.scrollY;
+  const oldSheet=$('#sheets .sheet');const hadSheet=!!oldSheet;const wY=($('#scroll')||{}).scrollTop||0;
   if(oldSheet&&UI._top)UI._top._sc=oldSheet.scrollTop;
   if(!hadSheet)UI._wy=wY;
   const views={home:vHome,history:vHistory,progress:vProgress,more:vMore};
-  $('#app').innerHTML=`<div class="wrap">${views[UI.tab](D)}${tabbar()}</div>`;
+  $('#app').innerHTML=`<div class="scroll" id="scroll"><div class="wrap">${views[UI.tab](D)}</div></div>${tabbar()}`;
   const top=UI.stack[UI.stack.length-1];
   $('#sheets').innerHTML=top?sheetHTML(top):'';
   document.body.classList.toggle('locked',!!top);
   if(top){const el=$('#sheets .sheet');if(el)el.scrollTop=top._sc||0;}
-  else window.scrollTo(0,hadSheet?(UI._wy||0):wY);
+  else{const s2=$('#scroll');if(s2)s2.scrollTop=hadSheet?(UI._wy||0):wY;}
   UI._top=top||null;drawBody();autoRun();
   if(!top&&!S.onboarded&&!S.gyms.length&&!UI.view){UI.stack=[{key:'onb'}];paint();}
 }
@@ -453,7 +463,7 @@ function vHome(D){
   if(self&&act)h+=`<div class="card cont" data-a="openWk" data-id="${act.id}"><b>Продолжить тренировку</b><div class="muted small">${TYPES[act.type].n} · начата ${fmtD(act.date)}</div></div>`;
   if(self){const qs=D.templates.slice().sort((a,b)=>(b.lastUsed||0)-(a.lastUsed||0)).slice(0,3);const lastDone=D.workouts.filter(x=>x.status==='done'&&x.type!=='activity').sort((a,b)=>(b.date+(b.endedAt||0)).localeCompare(a.date+(a.endedAt||0)))[0];
     if(qs.length||lastDone)h+=`<div class="sec">Быстрый старт</div><div class="grp">`+qs.map(t=>`<button class="li" data-a="tplStart" data-id="${t.id}"><div class="grow"><b>${esc(t.name)}</b><div class="muted small">${TYPES[t.type].n} · ${t.exercises.length} упр.${t.minutes?' · ~'+t.minutes+' мин':''}</div></div><span class="startbtn">▶ Старт</span></button>`).join('')+(lastDone?`<button class="li" data-a="dupWk" data-id="${lastDone.id}"><div class="grow"><b>Повторить прошлую</b><div class="muted small">${TYPES[lastDone.type].n} · ${fmtD(lastDone.date)}</div></div><span class="startbtn">▶ Старт</span></button>`:'')+`</div>`;}
-  if(self&&backupDue())h+=`<div class="card banner"><span>Пора сделать копию данных</span><button class="linkbtn" data-a="push" data-k="exchange">Открыть</button></div>`;
+  if(self&&backupDue())h+=`<div class="card banner" style="flex-wrap:wrap;gap:8px"><span>${backupAge()===null?'Копии данных ещё нет. Сохраните её, чтобы не потерять тренировки.':'Копия данных сделана '+backupAge()+' дн. назад.'}</span><span><button class="linkbtn" data-a="exFull">Сохранить копию</button> <button class="linkbtn muted" data-a="backupLater">Позже</button></span></div>`;
   if(self)h+=`<div class="stack" style="margin-top:8px"><div class="row"><label class="chip">Зал: <select data-c="gymPick">${gymOpts(S.lastGym)}</select></label></div></div>`;
   // week dots
   const mon=monday(ld());let dots='';
@@ -655,8 +665,8 @@ function vMore(D){
   h+=`<div class="grp"><button class="li" data-a="push" data-k="profile"><div class="grow"><b>${esc(S.profile.name||'Профиль')}</b><div class="muted small">${S.profile.weightKg?fmtW(S.profile.weightKg)+' '+unitL()+' · ':''}ограничения: ${(S.profile.limits||[]).filter(l=>l.status==='now').length}</div></div><span class="muted">›</span></button></div>`;
   h+=`<div class="grp"><button class="li" data-a="push" data-k="gymList"><span class="grow">Залы</span><span class="muted">${S.gyms.length} ›</span></button><button class="li" data-a="push" data-k="tplList"><span class="grow">Шаблоны</span><span class="muted">${S.templates.length} ›</span></button></div>`;
   if(S.profile.coach)h+=`<div class="grp"><button class="li" data-a="push" data-k="students"><span class="grow">Ученики</span><span class="muted">${S.students.length} ›</span></button></div>`;
-  h+=`<div class="grp"><button class="li" data-a="push" data-k="exchange"><span class="grow">Обмен файлами и копии</span><span class="muted">›</span></button><button class="li" data-a="push" data-k="settings"><span class="grow">Настройки</span><span class="muted">›</span></button></div>`;
-  h+=`<div class="hint">Данные хранятся в этом браузере на устройстве. Сделайте копию через «Обмен файлами и копии».</div>`;
+  h+=`<div class="grp"><button class="li" data-a="push" data-k="exchange"><span class="grow">Копии и перенос данных</span><span class="muted">›</span></button><button class="li" data-a="push" data-k="settings"><span class="grow">Настройки</span><span class="muted">›</span></button></div>`;
+  h+=`<div class="hint">Данные хранятся в этом браузере на устройстве. Сделайте копию через «Копии и перенос данных».</div>`;
   return h;}
 
 /* ============ sheets ============ */
@@ -674,12 +684,21 @@ SH.types=s=>{const lastL=agg(ctx(),'').big.legs;const rec=!lastL||dayDiff(ld(),l
 const setsDone=x=>x.sets.length>0&&x.sets.every(s=>s.done);
 function curEx(w){const list=w.exercises;if(!list.length)return null;let x=list.find(q=>q.uid===UI.cur[w.id]);
   if(!x||setsDone(x)){const start=x?list.indexOf(x):-1;x=list.slice(start+1).find(q=>!setsDone(q))||list.find(q=>!setsDone(q))||null;UI.cur[w.id]=x?x.uid:null;UI.stopped=null;}return x;}
-function wkCard(w,D){const x=curEx(w);const n=w.exercises.length;
+const ovd=()=>UI.ovDone||(UI.ovDone={});
+function ovOn(w){if(!w.exercises.length)return false;const v=ovd()[w.id];if(v==='show')return true;if(v)return false;return !w.exercises.some(q=>q.sets.some(s=>s.done));}
+function exThumb(e){const[pat,tool]=exMeta(e);return`<div class="ovth">${EXP[e.name]?'<img alt="" src="'+EXP[e.name]+'">':fig(pat,0,tool)}</div>`;}
+function wkOverview(w,D){const n=w.exercises.length;const sets=w.exercises.reduce((a,x)=>a+x.sets.filter(s=>!s.warm).length,0);const t=TYPES[w.type];
+  let h=`<div class="card"><div class="exn">План тренировки</div><div class="muted small">${t.n} · ${n} упр. · ${sets} подходов · ≈ ${estMin(w)} мин${w.plan?' (цель '+w.plan+' мин)':''}</div></div>`;
+  h+=`<div class="grp ovlist">`+w.exercises.map((x,i)=>{const e=exById(x.exId,D);if(!e)return'';const ws=x.sets.filter(s=>!s.warm);const sub=SUB[e.sub]||'';
+    return`<div class="ovrow">${exThumb(e)}<div class="grow"><div class="ovn">${i+1}. ${esc(e.name)}</div><div class="muted small">${sub} · ${ws.length} ${e.timed?'подх. на время':'подх.'}${!e.timed&&ws[0]&&ws[0].r?' × '+ws[0].r:''}</div></div><div class="ovmv"><button class="iconbtn" data-a="exMove" data-id="${w.id}" data-x="${x.uid}" data-d="-1" aria-label="Выше" ${i===0?'disabled':''}>↑</button><button class="iconbtn" data-a="exMove" data-id="${w.id}" data-x="${x.uid}" data-d="1" aria-label="Ниже" ${i===n-1?'disabled':''}>↓</button></div></div>`;}).join('')+`</div>`;
+  h+=`<div class="hint">Порядок можно поменять стрелками. Нажмите «Далее», чтобы открыть первое упражнение.</div>`;
+  return h;}
+function wkCard(w,D){if(ovOn(w))return wkOverview(w,D);const x=curEx(w);const n=w.exercises.length;
   let h=`<div class="prog">${w.exercises.map(q=>`<i class="${setsDone(q)?'d':(x&&q.uid===x.uid)?'c':''}"></i>`).join('')}</div>`;
   if(!n)return h+'<div class="hint">Добавьте упражнения кнопкой «+» внизу.</div>';
   if(!x)return h+`<div class="card" style="text-align:center"><div class="exn">Все упражнения выполнены</div><p class="muted">Отличная работа! Осталось сохранить тренировку.</p><button class="btn primary" data-a="finish" data-id="${w.id}">Завершить тренировку</button></div>`;
   const idx=w.exercises.indexOf(x);const nx=w.exercises.slice(idx+1).find(q=>!setsDone(q))||w.exercises.find(q=>q!==x&&!setsDone(q));
-  h+=`<div class="muted small" style="margin:0 20px 6px">Упражнение ${idx+1} из ${n}</div>`+exCard(x,w,D,{focus:true});
+  h+=`<div class="row" style="margin:0 20px 6px;justify-content:space-between"><span class="muted small">Упражнение ${idx+1} из ${n}</span><button class="linkbtn" style="min-height:28px;font-size:14px" data-a="ovOpen" data-id="${w.id}">Все упражнения</button></div>`+exCard(x,w,D,{focus:true});
   if(nx)h+=`<div class="muted" style="margin:0 20px 8px">Далее: <b>${esc((exById(nx.exId,D)||{}).name||'')}</b></div>`;
   const t=TYPES[w.type];if(t.groups){const miss=balanceInfo(w).filter(b=>!b.paused_by_limitation&&b.sets<b.norm_from).map(b=>b.group.toLowerCase());if(miss.length)h+=`<div class="muted small" style="margin:0 20px 8px">Не хватает по балансу: ${miss.join(', ')}</div>`;}
   return h;}
@@ -692,7 +711,8 @@ SH.wk=s=>{const w=findW(s.id);if(!w)return{t:'Тренировка',b:'<div clas
   if(act&&own())b+=`<div class="seg" style="margin-top:8px"><button class="${cardMode?'on':''}" data-a="wkView" data-v="card">Карточки</button><button class="${cardMode?'':'on'}" data-a="wkView" data-v="list">Список и настройки</button></div>`;
   const timerCard=act?`<div class="card"><div class="timer"><span>Время</span><b id="wtimer">${fmtT(Date.now()-w.startedAt)}</b></div>${w.plan?`<div class="track"><i id="wplanbar" style="width:${planPct(w)}%;background:var(--accent)"></i></div><div class="muted small" id="wplan">${planText(w)}</div>`:''}</div>`:'';
   const restPill=UI.rest&&act?`<button class="restpill" data-a="restStop">Отдых <span id="restT">${fmtT(Math.max(0,UI.rest.end-Date.now()))}</span> · пропустить</button>`:'';
-  if(cardMode){const x=curEx(w);b+=timerCard+wkCard(w,D)+restPill;
+  if(cardMode){const ovm=ovOn(w);const x=ovm?null:curEx(w);b+=(ovm?'':timerCard)+wkCard(w,D)+(ovm?'':restPill);
+    if(ovm){b+=`<div class="bottom"><button class="iconbtn" style="min-width:52px;min-height:50px;font-size:22px" data-a="pickEx" data-id="${w.id}" aria-label="Добавить упражнение">+</button><button class="btn primary" data-a="ovNext" data-id="${w.id}">Далее</button></div>`;return{t:fmtD(w.date),r,b};}
     b+=`<div class="bottom"><button class="iconbtn" style="min-width:52px;min-height:50px;font-size:22px" data-a="pickEx" data-id="${w.id}" aria-label="Добавить упражнение">+</button>${x?`<button class="btn tonal" data-a="exSkip" data-id="${w.id}" data-x="${x.uid}">Пропустить</button><button class="btn primary" data-a="doneSet" data-id="${w.id}">Подход выполнен</button>`:`<button class="btn primary" data-a="finish" data-id="${w.id}">Завершить</button>`}</div>`;
     return{t:fmtD(w.date),r,b};}
   if(tp||act){const tk=Object.keys(TYPES).filter(k=>k!=='activity');
@@ -717,7 +737,7 @@ function runLeft(R){const{s}=getSet(R.wid+'|'+R.xid+'|'+R.i);return Math.max(0,(
 function exCard(ex,w,D,opt){opt=opt||{};const e=exById(ex.exId,D);if(!e)return'';const act=w.status==='active';const prev=prevWorking(e.id,w,D);const rk=risky(e,D);const edit=(act||w.tpl)&&own();
   const doneN=ex.sets.filter(s=>s.done).length;const[pat,tool,how]=exMeta(e);
   let h=`<div class="card ex${opt.focus?' focus':''}"><div class="row" style="flex-wrap:nowrap"><div class="grow"><div class="exn">${esc(e.name)}${rk?'<span class="warnb">⚠ ограничение</span>':''}</div><div class="muted small">${SUB[e.sub]} · ${BIG[subBig[e.sub]].n}${e.bw?' · свой вес':''}${e.timed?' · на время':''}</div></div><button class="iconbtn" data-a="exInfo" data-id="${e.id}" aria-label="Как выполнять">ⓘ</button>${own()?`<button class="iconbtn" data-a="exMenu" data-id="${w.id}" data-x="${ex.uid}">⋯</button>`:''}</div>`;
-  if(opt.focus)h+=`<details class="how"><summary>Как выполнять</summary>${exFig(e,pat,tool)}${how?`<p class="small">${esc(how)}</p>`:''}</details>`;
+  if(opt.focus){h+=`<div class="exfig">${exFig(e,pat,tool)}</div>`;if(how)h+=`<details class="how"><summary>Как выполнять</summary><p class="small">${esc(how)}</p></details>`;}
   if(w.tpl&&S.profile.coach)h+=`<label class="field" style="margin-top:6px"><span>Заметка тренера</span><input type="text" value="${esc(ex.coachNote||'')}" data-c="exCoach" data-k="${w.id}|${ex.uid}|0"></label>`;
   else if(ex.coachNote)h+=`<div class="coach">Тренер: ${esc(ex.coachNote)}</div>`;
   if(prev.length)h+=`<div class="muted small" style="margin-top:4px">Прошлый раз: ${fmtSets(prev)}${e.timed?'':' '+unitL()}</div>`;
@@ -738,7 +758,15 @@ function exCard(ex,w,D,opt){opt=opt||{};const e=exById(ex.exId,D);if(!e)return''
   const done=w.exercises.flatMap(x=>x.sets.filter(q=>q.done&&!q.warm));const ton=done.reduce((a,q)=>a+q.w*q.r,0);
   const prs=[];w.exercises.forEach(x=>{const e=exById(x.exId,D);if(!e)return;const b=bestSet(x.sets.filter(q=>q.done));if(!b||!b.w)return;let prevMax=0;D.workouts.forEach(o=>{if(o.id===w.id||o.status!=='done'||o.date>w.date)return;o.exercises.filter(y=>y.exId===x.exId).forEach(y=>y.sets.forEach(q=>{if(q.done&&!q.warm&&q.w>prevMax)prevMax=q.w;}));});if(b.w>prevMax)prs.push(`${e.name}: ${fmtW(b.w)} ${unitL()} × ${b.r}`);});
   const dur=Date.now()-w.startedAt;
-  return{t:'Итоги',r:'',b:`<div class="card"><div class="kv"><span>Длительность</span><span>${fmtDur(dur)}${w.plan?' · план '+w.plan+' мин':''}</span></div><div class="kv"><span>Выполнено подходов</span><span>${done.length}</span></div><div class="kv"><span>Тоннаж</span><span>${Math.round(toD(ton)).toLocaleString('ru-RU')} ${unitL()}</span></div>${prs.length?`<div class="sec" style="margin:10px 0 4px">Новые рекорды</div>${prs.map(p=>`<div class="kv"><span>${esc(p)}</span></div>`).join('')}`:''}</div>
+  const D2=Object.assign({},S,{workouts:[w]});const cw=countW(w,S);const gs=Object.keys(BIG).filter(g=>cw.big[g]&&cw.big[g].sets).sort((a,b)=>cw.big[b].sets-cw.big[a].sets);const gmx=Math.max(1,...gs.map(g=>cw.big[g].sets));
+  const exN=w.exercises.filter(x=>x.sets.some(q=>q.done&&!q.warm)).length;const tg=TYPES[w.type].groups||[];const skipped=tg.filter(g=>!(cw.big[g]&&cw.big[g].sets)).map(g=>BIG[g].n.toLowerCase());
+  const topSub=Object.keys(cw.sub).filter(k=>cw.sub[k].sets).sort((a,b)=>cw.sub[b].sets-cw.sub[a].sets).slice(0,3).map(k=>SUB[k].toLowerCase());
+  const muscles=gs.length?bodyHTML(D2,'','sets',false).replace('за период','за эту тренировку')+`<div style="margin-top:10px">`+gs.map(g=>`<div class="mrow"><span>${BIG[g].n}</span><div class="track"><i style="width:${cw.big[g].sets/gmx*100}%;background:${BIG[g].c}"></i></div><span class="v">${cw.big[g].sets}</span></div>`).join('')+`</div><div class="muted small" style="margin-top:6px">Числа справа: рабочих подходов на группу.${topSub.length?' Больше всего нагрузки: '+topSub.join(', ')+'.':''}${skipped.length?' Не затронуты: '+skipped.join(', ')+'.':''}</div>`:'<div class="muted">Нет выполненных подходов, карта мышц пуста.</div>';
+  return{t:'Итоги',r:'',b:`<div class="sumtop"><b>Тренировка завершена</b><div class="muted">${TYPES[w.type].n} · ${fmtD(w.date)}</div></div>
+  <div class="sumgrid"><div><b>${fmtDur(dur)}</b><span>время${w.plan?' · план '+w.plan+' мин':''}</span></div><div><b>${done.length}</b><span>подходов · ${exN} упр.</span></div><div><b>${ton?Math.round(toD(ton)).toLocaleString('ru-RU'):'—'}</b><span>тоннаж, ${unitL()}</span></div></div>
+  <div class="sec">Какие мышцы вы прокачали</div><div class="card">${muscles}</div>
+  ${prs.length?`<div class="sec">Новые рекорды</div><div class="card">${prs.map(p=>`<div class="kv"><span>${esc(p)}</span></div>`).join('')}</div>`:''}
+  <div class="sec">Сохранение</div>
   <div class="card"><label class="field"><span>Дата</span><input type="date" value="${w.date}" data-c="wkDate" data-id="${w.id}"></label>
   <label class="row" style="margin-bottom:8px"><input type="checkbox" id="tplChk"> Сохранить как шаблон</label><label class="field"><span>Название шаблона</span><input type="text" id="tplName" value="${esc(TYPES[w.type].n+' '+fmtD(w.date))}"></label></div>
   <div class="stack"><button class="btn primary" data-a="saveWk" data-id="${w.id}">Сохранить тренировку</button><button class="btn tonal" data-a="back">Продолжить</button><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить тренировку</button></div>`};};
@@ -815,14 +843,15 @@ SH.settings=()=>{const P=S.profile;const seg=(k,v,l)=>`<button class="${P[k]===v
   <label class="row" style="min-height:44px"><input type="checkbox" ${P.detail?'checked':''} data-a="togg" data-k="detail"> Подробные группы мышц</label></div>
   <div class="sec">Тема</div><div class="seg">${seg('theme','auto','авто')}${seg('theme','light','светлая')}${seg('theme','dark','тёмная')}</div>
   <div class="sec">Режим тренера</div><div class="card"><label class="row" style="min-height:44px"><input type="checkbox" ${P.coach?'checked':''} data-a="togg" data-k="coach"> Я тренер</label><div class="muted small">Тренер видит учеников по присланным файлам. Интерфейс учеников не меняется.</div></div>`};};
-SH.exchange=()=>({t:'Обмен и копии',r:'',b:`<div class="sec">Файлы</div><div class="grp">
-  <button class="li" data-a="exPkg"><span class="grow">Экспорт пакета (профиль, история, шаблоны, залы)</span><span class="muted">›</span></button>
-  <button class="li" data-a="exFull"><span class="grow">Полный бэкап всех данных</span><span class="muted">›</span></button>
-  <button class="li" data-a="importPick"><span class="grow">Импорт файла</span><span class="muted">›</span></button></div>
-  <div class="hint">Файл можно отправить через меню «Поделиться» или сохранить в Файлы. Залы и шаблоны можно передавать отдельно из их карточек. При импорте приложение ничего не перезаписывает молча.</div>
-  <div class="sec">Копии в приложении</div><div class="grp"><button class="li" data-a="push" data-k="snaps"><span class="grow">Резервные копии (последние 10)</span><span class="muted">${(S.snaps||[]).length} ›</span></button></div>
-  ${S.profile.coach?`<div class="sec">Ученики</div><div class="grp"><button class="li" data-a="push" data-k="students"><span class="grow">Ученики</span><span class="muted">›</span></button></div>`:''}
-  <div class="hint">Google Drive пока не подключён: см. итог по ТЗ.</div>`});
+SH.exchange=()=>{const a=backupAge();return{t:'Копии и перенос',r:'',b:`<div class="card"><div><b>Копия в файле</b></div><div class="muted small" style="margin:4px 0 10px">${a===null?'Ещё не делали. Сохраните файл, и данные переживут очистку браузера или смену телефона.':'Последняя: '+(a===0?'сегодня':a+' дн. назад')+'.'}</div><button class="btn primary" data-a="exFull">Сохранить копию (все данные)</button></div>
+  <div class="hint">Откроется меню «Поделиться»: выберите «Сохранить в Файлы» и папку в iCloud Drive или Google Drive, тогда копия сохранится и вне телефона. Если меню не открылось, файл скачается в загрузки.</div>
+  <div class="sec">Восстановление</div><div class="grp"><button class="li" data-a="importPick"><span class="grow">Восстановить или импортировать из файла</span><span class="muted">›</span></button></div>
+  <div class="hint">Выберите файл копии. Перед заменой данных приложение само делает копию текущих, ничего не перезаписывается молча.</div>
+  <div class="sec">Передача</div><div class="grp"><button class="li" data-a="exPkg"><span class="grow">Экспорт пакета (профиль, история, шаблоны, залы)</span><span class="muted">›</span></button></div>
+  <div class="hint">Залы и шаблоны можно передавать отдельно из их карточек.</div>
+  <div class="sec">Копии в приложении</div><div class="grp"><button class="li" data-a="push" data-k="snaps"><span class="grow">Автоматические копии (последние 10)</span><span class="muted">${(S.snaps||[]).length} ›</span></button></div>
+  <div class="hint">Эти копии хранятся в самом браузере и защищают от ошибок в приложении, но не от очистки данных сайта. Для полной защиты сохраняйте файл.</div>
+  ${S.profile.coach?`<div class="sec">Ученики</div><div class="grp"><button class="li" data-a="push" data-k="students"><span class="grow">Ученики</span><span class="muted">›</span></button></div>`:''}`};};
 SH.snaps=()=>({t:'Резервные копии',r:'',b:`<div class="grp">${(S.snaps||[]).map((s,i)=>{let n={w:0};try{n.w=JSON.parse(s.json).workouts.length}catch(e){}return`<div class="li"><div class="grow"><div>${new Date(s.at).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div><div class="muted small">${s.reason} · тренировок: ${n.w}</div></div><button class="chip" data-a="snapRestore" data-i="${i}">Восстановить</button></div>`;}).join('')||'<div class="li muted">Копий пока нет</div>'}</div>`});
 SH.students=()=>({t:'Ученики',r:'',b:`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="importPick">Импорт файла ученика</button></div>
   <div class="grp">${S.students.length?S.students.map(s=>{const d=dayDiff(ld(),s.updatedAt);return`<div class="li"><button class="grow" style="background:none;border:0;text-align:left;cursor:pointer" data-a="studentView" data-id="${s.id}"><div>${esc(s.name)}</div><div class="muted small">последний файл ${d===0?'сегодня':d+' дн. назад'}</div></button><button class="del" data-a="studentDel" data-id="${s.id}">×</button></div>`;}).join(''):'<div class="li muted">Учеников пока нет</div>'}</div>`});
@@ -842,7 +871,7 @@ SH.exportNote=()=>({t:'',b:''});
 
 /* ============ actions ============ */
 const ACT={};ACT.zoneCv=zoneCvHandler;
-ACT.tab=p=>{UI.tab=p.t;UI.stack=[];paint();window.scrollTo(0,0);};
+ACT.tab=p=>{UI.tab=p.t;UI.stack=[];paint();const s=$('#scroll');if(s)s.scrollTop=0;};
 ACT.push=p=>{UI.stack.push({key:p.k,id:p.id});paint();};
 ACT.back=()=>{const top=UI.stack[UI.stack.length-1];if(top&&top.key==='wk'){UI.run=null;const w=findW(top.id);if(w&&w.tpl)commitTpl(w);}UI.stack.pop();paint();};
 ACT.onb=p=>{const name=($('#obName')||{}).value||'';const w=num(($('#obW')||{}).value);S.profile.name=name.trim();S.profile.sex=($('#obSex')||{}).value||'';if(w)S.profile.weightKg=fromD(w);makeGym(p.k);S.onboarded=true;UI.stack=[];save();paint();};
@@ -883,7 +912,10 @@ ACT.check=p=>{const{ex,s}=getSet(p.k);if(!s)return;s.done=!s.done;if(s.done&&!s.
 ACT.warm=p=>{const{s}=getSet(p.k);if(!s)return;s.warm=!s.warm;save();paint();};
 ACT.addSet=p=>{const[wid,xid]=p.k.split('|');const{ex}=getWEx(wid,xid);if(!ex)return;const last=ex.sets[ex.sets.length-1]||{w:0,r:0};ex.sets.push({w:last.w,r:last.r,t:last.t,done:false,warm:false});save();paint();};
 ACT.delSet=p=>{const{w,ex,s,i}=getSet(p.k);if(!s)return;ex.sets.splice(i,1);save();paint();toast('Подход удалён',()=>{ex.sets.splice(i,0,s);});};
-ACT.doneSet=p=>{const w=findW(p.id);if(!w)return;const x=curEx(w);if(!x)return toast('Все упражнения выполнены');const i=x.sets.findIndex(s=>!s.done);if(i<0)return;if(UI.run)UI.run=null;ACT.check({k:`${w.id}|${x.uid}|${i}`});};
+function autoSummary(wid){const top=UI.stack[UI.stack.length-1];if(!top||top.key!=='wk'||top.id!==wid||UI.wkView==='list'||!own())return;const w=findW(wid);if(!w||w.status!=='active'||!w.exercises.length||!w.exercises.every(setsDone))return;UI.rest=null;UI.run=null;UI.stack.push({key:'summary',id:wid});}
+ACT.doneSet=p=>{const w=findW(p.id);if(!w)return;const x=curEx(w);if(!x)return toast('Все упражнения выполнены');const i=x.sets.findIndex(s=>!s.done);if(i<0)return;if(UI.run)UI.run=null;ACT.check({k:`${w.id}|${x.uid}|${i}`});autoSummary(w.id);paint();};
+ACT.ovNext=p=>{const w=findW(p.id);if(!w)return;const fresh=!w.exercises.some(q=>q.sets.some(s=>s.done));ovd()[w.id]=true;if(fresh)w.startedAt=Date.now();UI.rest=null;save();paint();};
+ACT.ovOpen=p=>{ovd()[p.id]='show';UI.run=null;paint();};
 ACT.wkView=p=>{UI.wkView=p.v;paint();};
 ACT.exSkip=p=>{const{w,ex}=getWEx(p.id,p.x);if(!w||!ex)return;const rest=w.exercises.filter(q=>q!==ex&&!setsDone(q));if(!rest.length)return toast('Это последнее упражнение');const i=w.exercises.indexOf(ex);w.exercises.splice(i,1);w.exercises.push(ex);UI.run=null;UI.stopped=null;const nx=w.exercises.slice(i).find(q=>q!==ex&&!setsDone(q))||rest[0];UI.cur[w.id]=nx.uid;save();paint();toast('В конец: '+((exById(ex.exId)||{}).name||''));};
 ACT.exMove=p=>{const{w,ex}=getWEx(p.id,p.x);if(!w||!ex)return;const i=w.exercises.indexOf(ex);const j=i+(+p.d);if(j<0||j>=w.exercises.length)return;[w.exercises[i],w.exercises[j]]=[w.exercises[j],w.exercises[i]];save();paint();};
@@ -949,7 +981,8 @@ ACT.tplStart=p=>{const t=S.templates.find(x=>x.id===p.id);const w={id:uid('w'),d
   t.lastUsed=Date.now();UI.wkView='card';S.workouts.push(w);save();UI.stack=[{key:'wk',id:w.id}];paint();};
 ACT.exTpl=p=>{const t=S.templates.find(x=>x.id===p.id);exportFile('template',t,'shablon-'+t.name);};
 ACT.exPkg=()=>{exportFile('package',{profile:S.profile,gyms:S.gyms,templates:S.templates,workouts:S.workouts.filter(w=>w.status==='done'),custom:S.custom},'paket-'+ld());};
-ACT.exFull=()=>{const{snaps,...rest}=S;exportFile('full',rest,'bekap-'+ld());};
+ACT.exFull=()=>{const{snaps,...rest}=S;exportFile('full',rest,'bekap-'+ld(),()=>{S.lastBackupAt=new Date().toISOString();S.backupSnooze=0;save();paint();toast('Копия сохранена');});};
+ACT.backupLater=()=>{S.backupSnooze=Date.now()+3*864e5;save();paint();};
 ACT.importPick=()=>{$('#fileIn').click();};
 ACT.snapRestore=p=>{const s=S.snaps[+p.i];if(!s)return;const prev=JSON.parse(JSON.stringify(S));try{const d=JSON.parse(s.json);S=Object.assign(freshDef(),d,{snaps:S.snaps,onboarded:true});save();UI.stack=[];paint();toast('Восстановлено из копии',()=>{S=prev;save();paint();});}catch(e){toast('Копия повреждена');}};
 ACT.fullApply=()=>{const o=UI.stack[UI.stack.length-1].obj;snapshot('до импорта');const d=o.data;S=Object.assign(freshDef(),d,{snaps:S.snaps,onboarded:true});save();UI.stack=[];paint();toast('Данные заменены');};
@@ -963,7 +996,7 @@ ACT.pkgStudent=()=>{const o=UI.stack.pop().obj;const d=o.data;const id=(S.studen
   if(!st){st={id,name:(d.profile&&d.profile.name)||'Ученик',updatedAt:ld(),data:incoming};S.students.push(st);}
   else{const m=(a,b)=>{const ids=new Set(a.map(x=>x.id));return a.concat(b.filter(x=>!ids.has(x.id)));};st.data.workouts=m(st.data.workouts,incoming.workouts);st.data.gyms=m(st.data.gyms,incoming.gyms);st.data.templates=m(st.data.templates,incoming.templates);st.data.profile=incoming.profile;st.data.custom=m(st.data.custom||[],incoming.custom);st.updatedAt=ld();}
   save();UI.stack=[];paint();toast('Сохранено: '+st.name);};
-ACT.studentView=p=>{UI.view=p.id;UI.tab='home';UI.stack=[];paint();window.scrollTo(0,0);};
+ACT.studentView=p=>{UI.view=p.id;UI.tab='home';UI.stack=[];paint();const s=$('#scroll');if(s)s.scrollTop=0;};
 ACT.studentExit=()=>{UI.view=null;UI.tab='more';UI.stack=[];paint();};
 ACT.studentDel=p=>{const i=S.students.findIndex(s=>s.id===p.id);const[s]=S.students.splice(i,1);save();paint();toast('Ученик удалён',()=>{S.students.splice(i,0,s);});};
 ACT.exTplDummy=null;
@@ -1125,12 +1158,12 @@ function handleImport(obj){
 }
 
 /* ============ export ============ */
-function exportFile(type,data,base){
+function exportFile(type,data,base,onSaved){
   const text=JSON.stringify({type,formatVersion:1,exportedAt:new Date().toISOString(),data},null,1);
   const name=('tracker-'+base).replace(/[\\/:*?"<>|\s]+/g,'-')+'.json';const blob=new Blob([text],{type:'application/json'});
   const file=new File([blob],name,{type:'application/json'});
-  const share=async()=>{try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return true;}}catch(e){if(e&&e.name==='AbortError')return true;}return false;};
-  share().then(ok=>{if(ok)return;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);toast('Файл сохранён: '+name);});
+  const share=async()=>{try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return true;}}catch(e){if(e&&e.name==='AbortError')return 'abort';}return false;};
+  share().then(ok=>{if(ok==='abort')return;if(ok){if(onSaved)onSaved();return;}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);toast('Файл сохранён: '+name);if(onSaved)onSaved();});
 }
 
 /* ============ toast ============ */
@@ -1151,7 +1184,7 @@ let _ac=null;
 function beep(f,ms){try{_ac=_ac||new (window.AudioContext||window.webkitAudioContext)();const o=_ac.createOscillator(),g=_ac.createGain();o.frequency.value=f||880;g.gain.value=.08;o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+(ms||120)/1000);}catch(e){}}
 function startRun(wid,xid,i){UI.run={wid,xid,i,phase:'ready',t0:Date.now(),step:-1};}
 function runFinish(){const R=UI.run;UI.run=null;if(!R)return;const{ex,s}=getSet(R.wid+'|'+R.xid+'|'+R.i);if(s){s.done=true;if(!s.warm)UI.rest={end:Date.now()+(ex.restSec||S.profile.restSec)*1000};}
-  beep(990,200);setTimeout(()=>beep(990,200),300);setTimeout(()=>beep(1320,400),600);try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}save();paint();}
+  beep(990,200);setTimeout(()=>beep(990,200),300);setTimeout(()=>beep(1320,400),600);try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}save();autoSummary(R.wid);paint();}
 // A timed exercise starts its own countdown (Реди, Стеди, Го) as soon as its card is on screen
 function autoRun(){const top=UI.stack[UI.stack.length-1];if(!top||top.key!=='wk'||UI.wkView==='list'||UI.run||UI.rest)return;const w=findW(top.id);if(!w||w.status!=='active'||!own())return;
   const x=curEx(w);if(!x||UI.stopped===x.uid)return;const e=exById(x.exId);if(!e||!e.timed)return;const i=x.sets.findIndex(s=>!s.done&&!s.warm);if(i<0)return;startRun(w.id,x.uid,i);paint();}
