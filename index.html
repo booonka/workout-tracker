@@ -669,7 +669,7 @@ function vMore(D){
   h+=`<div class="grp"><button class="li" data-a="push" data-k="profile"><div class="grow"><b>${esc(S.profile.name||'Профиль')}</b><div class="muted small">${S.profile.weightKg?fmtW(S.profile.weightKg)+' '+unitL()+' · ':''}ограничения: ${(S.profile.limits||[]).filter(l=>l.status==='now').length}</div></div><span class="muted">›</span></button></div>`;
   h+=`<div class="grp"><button class="li" data-a="push" data-k="gymList"><span class="grow">Залы</span><span class="muted">${S.gyms.length} ›</span></button><button class="li" data-a="push" data-k="tplList"><span class="grow">Шаблоны</span><span class="muted">${S.templates.length} ›</span></button></div>`;
   if(S.profile.coach)h+=`<div class="grp"><button class="li" data-a="push" data-k="students"><span class="grow">Ученики</span><span class="muted">${S.students.length} ›</span></button></div>`;
-  h+=`<div class="grp"><button class="li" data-a="push" data-k="exchange"><span class="grow">Копии и перенос данных</span><span class="muted">›</span></button><button class="li" data-a="push" data-k="settings"><span class="grow">Настройки</span><span class="muted">›</span></button></div>`;
+  h+=`<div class="grp"><button class="li" data-a="push" data-k="exchange"><span class="grow">Копии и перенос данных</span><span class="muted">›</span></button><button class="li" data-a="push" data-k="shortcuts"><span class="grow">Быстрые команды</span><span class="muted">›</span></button><button class="li" data-a="push" data-k="settings"><span class="grow">Настройки</span><span class="muted">›</span></button></div>`;
   h+=`<div class="hint">Данные хранятся в этом браузере на устройстве. Сделайте копию через «Копии и перенос данных».</div>`;
   return h;}
 
@@ -731,7 +731,7 @@ SH.wk=s=>{const w=findW(s.id);if(!w)return{t:'Тренировка',b:'<div clas
   w.exercises.forEach(ex=>{b+=exCard(ex,w,D);});
   if(!w.exercises.length)b+=`<div class="hint">Пока нет упражнений. Нажмите «+ Упражнение».</div>`;
   if(tp)b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="tplStartDraft" data-id="${w.id}">Начать тренировку</button><button class="btn tonal" data-a="tplShareD" data-id="${w.id}">Поделиться шаблоном</button><button class="btn danger" data-a="tplDelD" data-id="${w.id}">Удалить шаблон</button></div><div class="bottom"><button class="btn tonal" data-a="pickEx" data-id="${w.id}">+ Упражнение</button><button class="btn primary" data-a="tplSave" data-id="${w.id}">Сохранить шаблон</button></div>`;
-  if(!act&&!tp&&own())b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="dupWk" data-id="${w.id}">Продублировать</button><button class="btn tonal" data-a="toTpl" data-id="${w.id}">Сохранить как шаблон</button><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить тренировку</button></div>`;
+  if(!act&&!tp&&own())b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="toHealth" data-id="${w.id}">Записать в «Здоровье»</button><button class="btn tonal" data-a="dupWk" data-id="${w.id}">Продублировать</button><button class="btn tonal" data-a="toTpl" data-id="${w.id}">Сохранить как шаблон</button><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить тренировку</button></div>`;
   if(act&&own())b+=`<div class="bottom"><button class="btn tonal" data-a="pickEx" data-id="${w.id}">+ Упражнение</button><button class="btn primary" data-a="doneSet" data-id="${w.id}">Подход выполнен</button></div>`;
   return{t:tp?'Шаблон':fmtD(w.date),r,b};};function balanceHTML(w,D){const t=TYPES[w.type];const nm=NORM[t.norm];const rs=restricted(D);const c=countW(w,D).big;const miss=[];
   const cols=t.groups.map(g=>{const B=BIG[g];if(rs.has(g))return`<div class="bcol restricted"><div class="bn">${B.n}</div><div class="track"></div><div class="bv">на паузе</div></div>`;
@@ -775,7 +775,7 @@ function exCard(ex,w,D,opt){opt=opt||{};const e=exById(ex.exId,D);if(!e)return''
   <div class="sec">Сохранение</div>
   <div class="card"><label class="field"><span>Дата</span><input type="date" value="${w.date}" data-c="wkDate" data-id="${w.id}"></label>
   <label class="row" style="margin-bottom:8px"><input type="checkbox" id="tplChk"> Сохранить как шаблон</label><label class="field"><span>Название шаблона</span><input type="text" id="tplName" value="${esc(TYPES[w.type].n+' '+fmtD(w.date))}"></label></div>
-  <div class="stack"><button class="btn primary" data-a="saveWk" data-id="${w.id}">Сохранить тренировку</button><button class="btn tonal" data-a="back">Продолжить</button><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить тренировку</button></div>`};};
+  <div class="stack"><button class="btn primary" data-a="saveWk" data-id="${w.id}">Сохранить тренировку</button><button class="btn tonal" data-a="toHealth" data-id="${w.id}">Записать в «Здоровье»</button><button class="btn tonal" data-a="back">Продолжить</button><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить тренировку</button></div>`};};
 SH.pick=s=>{const D=ctx();const isWk=s.mode==='wk';const w=isWk?findW(s.id):null;const t=!isWk?D.templates.find(x=>x.id===s.id):null;
   const gym=gymOf(w?w.gymId:(t?t.gymId:null),D);const gl=[['','Все'],...Object.keys(BIG).map(k=>[k,BIG[k].n])];
   return{t:'Упражнения',b:`<div class="card" style="padding:10px 12px"><input type="text" placeholder="Поиск" value="${esc(UI.pickQ)}" data-in="pickq"></div>
@@ -832,7 +832,20 @@ SH.gym=s=>{const g=S.gyms.find(x=>x.id===s.id);if(!g)return{t:'',b:''};
   <div class="stack"><button class="btn tonal" data-a="gymShare" data-id="${g.id}">Поделиться залом</button><button class="btn danger" data-a="gymDel" data-id="${g.id}">Удалить зал</button></div>`};};
 SH.eqinfo=s=>{const g=S.gyms.find(x=>x.id===s.id);const c=s.c;if(!EQ[c])return{t:'',b:''};const has=g&&g.eq.includes(c);const br=g&&g.broken&&g.broken[c];
   return{t:esc(EQ[c]),r:'',b:`${eqBig(c)}<div class="card"><div>${esc(EQD[c])}</div></div>${EQDEMO[c]?`<div class="sec">Как выглядит в работе</div><div class="card">${framesHTML(...EQDEMO[c])}</div>`:''}${g?`<div class="stack"><button class="btn ${has?'tonal':'primary'}" data-a="gymEqT" data-id="${g.id}" data-c="${c}">${has?'Убрать из зала':'Добавить в зал'}</button>${has?`<button class="btn tonal" data-a="gymBrokenT" data-id="${g.id}" data-c="${c}" style="${br?'color:var(--danger)':''}">${br?'Сломан с '+fmtD(br)+' · снять отметку':'Отметить сломанным'}</button>`:''}</div>`:''}`};};
-SH.profile=()=>{const P=S.profile;return{t:'Профиль',r:'',b:`<div class="card">
+SH.shortcuts=()=>{const B=SC_BASE();const link=(n,u,d)=>`<div class="li" style="flex-direction:column;align-items:stretch;gap:4px"><div><b>${n}</b></div><div class="muted small">${d}</div><div class="row"><code class="small grow" style="word-break:break-all">${esc(u)}</code><button class="chip" data-a="copyTxt" data-t="${esc(u)}">Копировать</button></div></div>`;
+  return{t:'Быстрые команды',r:'',b:`<div class="hint">Приложение понимает ссылки. В приложении «Команды» (Shortcuts) добавьте действие «Открыть URL» и вставьте ссылку. Команду можно запускать голосом через Siri, с экрана блокировки, по расписанию или по прибытию в зал.</div>
+  <div class="sec">Ссылки для команд</div><div class="grp">
+  ${link('Повторить прошлую тренировку',B+'?start=quick','Siri: «Начать тренировку»')}
+  ${link('Запустить шаблон',B+'?start=Название','Замените «Название» на имя шаблона')}
+  ${link('Подход выполнен',B+'?do=set','Записывает следующий подход в активной тренировке')}
+  ${link('Пропустить упражнение',B+'?do=skip','Переносит текущее упражнение в конец')}
+  ${link('Прогресс',B+'?tab=progress','Открывает вкладку «Прогресс»')}
+  ${link('Копии',B+'?backup=1','Открывает экран копий')}</div>
+  <div class="sec">Напоминание о тренировках</div><div class="card small">Команды → Автоматизация → «Время суток» → выберите дни и время → «Показать уведомление» («Пора тренироваться») → «Открыть URL» со ссылкой «Повторить прошлую». Выключите «Спрашивать перед запуском».</div>
+  <div class="sec">Таймер отдыха голосом</div><div class="card small">Новая команда «Отдых»: действие «Запустить таймер» на 90 секунд. Скажите: «Привет, Siri, отдых». Внутри тренировки приложение само отсчитывает отдых и озвучивает следующее упражнение на последнем подходе (Настройки → Голосовые подсказки).</div>
+  <div class="sec">Запись в «Здоровье»</div><div class="card small">Команда с именем <b>Записать тренировку</b>: 1) «Получить словарь из Ввод команды»; 2) «Записать тренировку»: тип «Силовая тренировка», длительность = minutes (мин), начало = start. Затем на экране итогов или в карточке тренировки нажмите «Записать в «Здоровье»».</div>
+  <div class="sec">Автокопия в iCloud</div><div class="card small">Команда с именем <b>Копия трекера</b>: 1) «Получить буфер обмена»; 2) «Сохранить файл»: папка iCloud Drive → «Трекер», имя <b>tracker-backup.json</b>, выключите «Спрашивать, куда сохранить», включите «Перезаписать, если файл существует». Затем в «Копии и перенос данных» включите «После каждой тренировки».</div>
+  <div class="hint">Ссылки открываются в вашем браузере. Для работы с данными приложения откройте их с иконки «Домой»: данные приложения и Safari хранятся раздельно.</div>`};};SH.profile=()=>{const P=S.profile;return{t:'Профиль',r:'',b:`<div class="card">
   <label class="field"><span>Имя</span><input type="text" value="${esc(P.name)}" data-c="prof" data-f="name"></label>
   <label class="field"><span>Рост, см</span><input type="number" inputmode="numeric" value="${esc(P.heightCm)}" data-c="prof" data-f="heightCm"></label>
   <label class="field"><span>Пол (для схемы тела)</span><select data-c="prof" data-f="sex"><option value="" ${!P.sex?'selected':''}>Не указан</option><option value="m" ${P.sex==='m'?'selected':''}>Мужской</option><option value="f" ${P.sex==='f'?'selected':''}>Женский</option></select></label>
@@ -846,11 +859,14 @@ SH.profile=()=>{const P=S.profile;return{t:'Профиль',r:'',b:`<div class="
 SH.settings=()=>{const P=S.profile;const seg=(k,v,l)=>`<button class="${P[k]===v?'on':''}" data-a="${k==='theme'?'theme':'setUnits'}" data-v="${v}">${l}</button>`;
   return{t:'Настройки',r:'',b:`<div class="sec">Единицы</div><div class="seg">${seg('units','kg','кг')}${seg('units','lb','фунты')}</div>
   <div class="card"><label class="field"><span>Шаг веса, ${unitL()}</span><input type="number" step="any" value="${P.step}" data-c="setting" data-f="step"></label><label class="field"><span>Отдых по умолчанию, сек</span><input type="number" value="${P.restSec}" data-c="setting" data-f="restSec"></label>
-  <label class="row" style="min-height:44px"><input type="checkbox" ${P.detail?'checked':''} data-a="togg" data-k="detail"> Подробные группы мышц</label></div>
+  <label class="row" style="min-height:44px"><input type="checkbox" ${P.detail?'checked':''} data-a="togg" data-k="detail"> Подробные группы мышц</label>
+  <label class="row" style="min-height:44px"><input type="checkbox" ${voiceOn()?'checked':''} data-a="voiceT"> Голосовые подсказки (следующее упражнение)</label></div>
   <div class="sec">Тема</div><div class="seg">${seg('theme','auto','авто')}${seg('theme','light','светлая')}${seg('theme','dark','тёмная')}</div>
   <div class="sec">Режим тренера</div><div class="card"><label class="row" style="min-height:44px"><input type="checkbox" ${P.coach?'checked':''} data-a="togg" data-k="coach"> Я тренер</label><div class="muted small">Тренер видит учеников по присланным файлам. Интерфейс учеников не меняется.</div></div>`};};
 SH.exchange=()=>{const a=backupAge();return{t:'Копии и перенос',r:'',b:`<div class="card"><div><b>Копия в файле</b></div><div class="muted small" style="margin:4px 0 10px">${a===null?'Ещё не делали. Сохраните файл, и данные переживут очистку браузера или смену телефона.':'Последняя: '+(a===0?'сегодня':a+' дн. назад')+'.'}</div><button class="btn primary" data-a="exFull">Сохранить копию (все данные)</button></div>
   <div class="hint">Откроется меню «Поделиться»: выберите «Сохранить в Файлы» и папку в iCloud Drive или Google Drive, тогда копия сохранится и вне телефона. Если меню не открылось, файл скачается в загрузки.</div>
+  <div class="sec">Автокопия в iCloud (через Команды)</div><div class="grp"><button class="li" data-a="backupShortcut"><span class="grow">Скопировать в iCloud сейчас</span><span class="muted">›</span></button><label class="li" style="cursor:pointer"><span class="grow">После каждой тренировки</span><input type="checkbox" ${S.profile.autoShortcut?'checked':''} data-a="togg" data-k="autoShortcut"></label></div>
+  <div class="hint">Команда «Копия трекера» кладёт файл в iCloud Drive и каждый раз заменяет предыдущий, без накопления копий. Как её создать: Ещё → Быстрые команды.</div>
   <div class="sec">Восстановление</div><div class="grp"><button class="li" data-a="importPick"><span class="grow">Восстановить или импортировать из файла</span><span class="muted">›</span></button></div>
   <div class="hint">Выберите файл копии. Перед заменой данных приложение само делает копию текущих, ничего не перезаписывается молча.</div>
   <div class="sec">Передача</div><div class="grp"><button class="li" data-a="exPkg"><span class="grow">Экспорт пакета (профиль, история, шаблоны, залы)</span><span class="muted">›</span></button></div>
@@ -908,7 +924,7 @@ ACT.dupWk=p=>{const o=S.workouts.find(x=>x.id===p.id);const w={id:uid('w'),date:
 ACT.delWk=p=>{const i=S.workouts.findIndex(x=>x.id===p.id);if(i<0)return;const[w]=S.workouts.splice(i,1);UI.stack=[];save();toast('Тренировка удалена',()=>{S.workouts.splice(i,0,w);});paint();};
 ACT.saveWk=p=>{const w=S.workouts.find(x=>x.id===p.id);if(!w)return;w.status='done';w.endedAt=Date.now();
   const on=$('#tplChk')&&$('#tplChk').checked;if(on){const n=($('#tplName')||{}).value||'Шаблон';S.templates.push(tplFromW(w,n));}
-  if(UI.activeX)UI.activeX=null;UI.rest=null;UI.stack=[];save();paint();toast('Тренировка сохранена');};
+  if(UI.activeX)UI.activeX=null;UI.rest=null;UI.stack=[];save();paint();toast('Тренировка сохранена');if(S.profile.autoShortcut)setTimeout(()=>ACT.backupShortcut(),600);};
 function tplFromW(w,name){return{id:uid('t'),name:name.trim()||'Шаблон',type:w.type,gymId:w.gymId,version:1,fromCoach:false,exercises:w.exercises.map(x=>{const ws=x.sets.filter(s=>!s.warm);const reps=ws.map(s=>s.r||0).filter(Boolean);return{exId:x.exId,sets:ws.length||3,rmin:reps.length?Math.min(...reps):8,rmax:reps.length?Math.max(...reps):12,w:ws.length?ws[ws.length-1].w:0,note:'',coachNote:''};})};}
 ACT.toTpl=p=>{const w=S.workouts.find(x=>x.id===p.id);S.templates.push(tplFromW(w,TYPES[w.type].n+' '+fmtD(w.date)));save();toast('Шаблон создан');paint();};
 ACT.actSave=()=>{const k=$('#actK').value;const o=$('#actO').value.trim();const kind=k==='Своё'?(o||'Своё'):k;const w={id:uid('w'),date:$('#actD').value||ld(),type:'activity',gymId:null,startedAt:Date.now(),endedAt:Date.now(),status:'done',exercises:[],activity:{kind,minutes:num($('#actM').value),dist:$('#actX').value.trim(),note:$('#actN').value.trim()}};
@@ -919,7 +935,17 @@ ACT.warm=p=>{const{s}=getSet(p.k);if(!s)return;s.warm=!s.warm;save();paint();};
 ACT.addSet=p=>{const[wid,xid]=p.k.split('|');const{ex}=getWEx(wid,xid);if(!ex)return;const last=ex.sets[ex.sets.length-1]||{w:0,r:0};ex.sets.push({w:last.w,r:last.r,t:last.t,done:false,warm:false});save();paint();};
 ACT.delSet=p=>{const{w,ex,s,i}=getSet(p.k);if(!s)return;ex.sets.splice(i,1);save();paint();toast('Подход удалён',()=>{ex.sets.splice(i,0,s);});};
 function autoSummary(wid){const top=UI.stack[UI.stack.length-1];if(!top||top.key!=='wk'||top.id!==wid||UI.wkView==='list'||!own())return;const w=findW(wid);if(!w||w.status!=='active'||!w.exercises.length||!w.exercises.every(setsDone))return;UI.rest=null;UI.run=null;UI.stack.push({key:'summary',id:wid});}
-ACT.doneSet=p=>{const w=findW(p.id);if(!w)return;const x=curEx(w);if(!x)return toast('Все упражнения выполнены');const i=x.sets.findIndex(s=>!s.done);if(i<0)return;if(UI.run)UI.run=null;ACT.check({k:`${w.id}|${x.uid}|${i}`});autoSummary(w.id);paint();};
+const pl=(n,a,b,c)=>{const m=n%100,k=n%10;return(m>10&&m<20)?c:k===1?a:(k>=2&&k<=4)?b:c;};
+const voiceOn=()=>S.profile.voice!==false;
+function speak(txt){try{if(!voiceOn()||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(txt);u.lang='ru-RU';u.rate=1;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+function nextExText(w,x){const list=w.exercises;const idx=list.indexOf(x);const nx=list.slice(idx+1).find(q=>!setsDone(q))||list.find(q=>q!==x&&!setsDone(q));if(!nx)return'';const e=exById(nx.exId);if(!e)return'';
+  const ws=nx.sets.filter(s=>!s.warm);const n=ws.length;const s0=ws[0]||{};let t='Следующее упражнение: '+e.name+'. '+n+' '+pl(n,'подход','подхода','подходов');
+  if(e.timed)t+=' по '+(s0.t||30)+' '+pl(s0.t||30,'секунде','секунды','секунд');else if(s0.r)t+=' по '+s0.r+' '+pl(s0.r,'повторению','повторения','повторений');
+  if(!e.timed&&s0.w)t+=', вес '+fmtW(s0.w)+' '+(isLb()?'фунтов':pl(Math.round(toD(s0.w)),'килограмм','килограмма','килограммов'));return t+'.';}
+ACT.voiceT=()=>{S.profile.voice=!voiceOn();save();paint();if(voiceOn())speak('Голосовые подсказки включены.');};
+ACT.doneSet=p=>{const w=findW(p.id);if(!w)return;const x=curEx(w);if(!x)return toast('Все упражнения выполнены');const i=x.sets.findIndex(s=>!s.done);if(i<0)return;if(UI.run)UI.run=null;
+  const last=x.sets.filter(s=>!s.done).length===1;const say=last?nextExText(w,x):'';
+  ACT.check({k:`${w.id}|${x.uid}|${i}`});autoSummary(w.id);const fin=UI.stack[UI.stack.length-1];if(fin&&fin.key==='summary')speak('Тренировка завершена. Отличная работа!');else if(say)speak(say);paint();};
 ACT.ovNext=p=>{const w=findW(p.id);if(!w)return;const fresh=!w.exercises.some(q=>q.sets.some(s=>s.done));ovd()[w.id]=true;if(fresh)w.startedAt=Date.now();UI.rest=null;save();paint();};
 ACT.exJump=p=>{const w=findW(p.id);const x=w&&w.exercises.find(q=>q.uid===p.x);if(!x)return;if(setsDone(x)){x.sets.forEach(s=>{if(!s.warm)s.done=false;});toast('Подходы этого упражнения сброшены, можно выполнить снова');}UI.cur[w.id]=x.uid;UI.run=null;UI.stopped=null;UI.rest=null;ovd()[w.id]=true;save();paint();};
 ACT.ovOpen=p=>{ovd()[p.id]='show';UI.run=null;paint();};
@@ -951,7 +977,29 @@ ACT.exDel=p=>{const{w,ex}=getWEx(p.id,p.x);const i=w.exercises.indexOf(ex);w.exe
 ACT.exNoteDummy=null;
 ACT.restStop=()=>{UI.rest=null;paint();};
 ACT.undo=()=>{const f=UI.undo;UI.undo=null;$('#toast').classList.remove('on');if(f){f();save();paint();}};
-ACT.togg=p=>{S.profile[p.k]=!S.profile[p.k];save();paint();};
+const SC_BASE=()=>location.origin+location.pathname;
+ACT.toHealth=p=>{const w=S.workouts.find(x=>x.id===p.id);if(!w)return;const end=w.endedAt||Date.now();const sets=w.exercises.reduce((a,x)=>a+x.sets.filter(s=>s.done&&!s.warm).length,0);
+  const payload={name:TYPES[w.type]?TYPES[w.type].n:'Тренировка',type:'strength',start:new Date(w.startedAt||end).toISOString(),end:new Date(end).toISOString(),minutes:Math.max(1,Math.round((end-(w.startedAt||end))/60000)),sets};
+  location.href='shortcuts://run-shortcut?name='+encodeURIComponent('Записать тренировку')+'&input=text&text='+encodeURIComponent(JSON.stringify(payload));
+  setTimeout(()=>toast('Если ничего не произошло, создайте команду «Записать тренировку» (Ещё → Быстрые команды)'),1500);};
+ACT.backupShortcut=async()=>{const{snaps,...rest}=S;const text=JSON.stringify({type:'full',formatVersion:1,exportedAt:new Date().toISOString(),data:rest});
+  try{await navigator.clipboard.writeText(text);}catch(e){return toast('Не удалось скопировать данные. Используйте «Сохранить копию».');}
+  location.href='shortcuts://x-callback-url/run-shortcut?name='+encodeURIComponent('Копия трекера')+'&x-success='+encodeURIComponent(SC_BASE()+'?backup=ok')+'&x-cancel='+encodeURIComponent(SC_BASE());};
+ACT.copyTxt=async p=>{try{await navigator.clipboard.writeText(p.t);toast('Скопировано');}catch(e){toast('Не удалось скопировать');}};
+function handleLaunch(){try{const q=new URLSearchParams(location.search);if(![...q.keys()].length)return;
+  const clean=()=>{try{history.replaceState(null,'',location.pathname);}catch(e){}};
+  if(!S.onboarded){clean();return;}
+  const st=q.get('start'),tab=q.get('tab'),bk=q.get('backup'),dn=q.get('do');
+  if(tab&&['home','history','progress','more'].includes(tab)){UI.tab=tab;UI.stack=[];}
+  const act=S.workouts.find(w=>w.status==='active');
+  if(bk==='ok'){S.lastBackupAt=new Date().toISOString();S.backupSnooze=0;save();setTimeout(()=>toast('Копия сохранена в iCloud'),400);}
+  else if(bk==='1'){UI.stack=[{key:'exchange'}];}
+  if(st){if(act){UI.wkView='card';UI.stack=[{key:'wk',id:act.id}];}
+    else if(st==='quick'){const last=S.workouts.filter(w=>w.status==='done'&&w.type!=='activity').sort((a,b)=>(b.date+(b.endedAt||0)).localeCompare(a.date+(a.endedAt||0)))[0];if(last)ACT.dupWk({id:last.id});else setTimeout(()=>toast('Пока нет прошлых тренировок'),400);}
+    else{const lc=st.toLowerCase();const tp=S.templates.find(x=>x.name.toLowerCase()===lc)||S.templates.find(x=>x.name.toLowerCase().includes(lc));if(tp)ACT.tplStart({id:tp.id});else setTimeout(()=>toast('Шаблон «'+st+'» не найден'),400);}}
+  if(dn&&act){UI.wkView='card';UI.stack=[{key:'wk',id:act.id}];const w=act;if(ovOn(w))ovd()[w.id]=true;if(dn==='set')ACT.doneSet({id:w.id});else if(dn==='skip'){const x=curEx(w);if(x)ACT.exSkip({id:w.id,x:x.uid});}}
+  else if(dn)setTimeout(()=>toast('Нет активной тренировки'),400);
+  clean();}catch(e){console.warn(e);}}ACT.togg=p=>{S.profile[p.k]=!S.profile[p.k];save();paint();};
 ACT.toggleDetail=()=>{S.profile.detail=!S.profile.detail;save();paint();};
 ACT.setUnits=p=>{S.profile.units=p.v;save();paint();};
 ACT.theme=p=>{S.profile.theme=p.v;save();paint();};
@@ -988,7 +1036,7 @@ ACT.tplStart=p=>{const t=S.templates.find(x=>x.id===p.id);const w={id:uid('w'),d
   t.lastUsed=Date.now();UI.wkView='card';S.workouts.push(w);save();UI.stack=[{key:'wk',id:w.id}];paint();};
 ACT.exTpl=p=>{const t=S.templates.find(x=>x.id===p.id);exportFile('template',t,'shablon-'+t.name);};
 ACT.exPkg=()=>{exportFile('package',{profile:S.profile,gyms:S.gyms,templates:S.templates,workouts:S.workouts.filter(w=>w.status==='done'),custom:S.custom},'paket-'+ld());};
-ACT.exFull=()=>{const{snaps,...rest}=S;exportFile('full',rest,'bekap-'+ld(),()=>{S.lastBackupAt=new Date().toISOString();S.backupSnooze=0;save();paint();toast('Копия сохранена');});};
+ACT.exFull=()=>{const{snaps,...rest}=S;exportFile('full',rest,'backup',()=>{S.lastBackupAt=new Date().toISOString();S.backupSnooze=0;save();paint();toast('Копия сохранена');});};
 ACT.backupLater=()=>{S.backupSnooze=Date.now()+3*864e5;save();paint();};
 ACT.importPick=()=>{$('#fileIn').click();};
 ACT.snapRestore=p=>{const s=S.snaps[+p.i];if(!s)return;const prev=JSON.parse(JSON.stringify(S));try{const d=JSON.parse(s.json);S=Object.assign(freshDef(),d,{snaps:S.snaps,onboarded:true});save();UI.stack=[];paint();toast('Восстановлено из копии',()=>{S=prev;save();paint();});}catch(e){toast('Копия повреждена');}};
@@ -1191,7 +1239,7 @@ let _ac=null;
 function beep(f,ms){try{_ac=_ac||new (window.AudioContext||window.webkitAudioContext)();const o=_ac.createOscillator(),g=_ac.createGain();o.frequency.value=f||880;g.gain.value=.08;o.connect(g);g.connect(_ac.destination);o.start();o.stop(_ac.currentTime+(ms||120)/1000);}catch(e){}}
 function startRun(wid,xid,i){UI.run={wid,xid,i,phase:'ready',t0:Date.now(),step:-1};}
 function runFinish(){const R=UI.run;UI.run=null;if(!R)return;const{ex,s}=getSet(R.wid+'|'+R.xid+'|'+R.i);if(s){s.done=true;if(!s.warm)UI.rest={end:Date.now()+(ex.restSec||S.profile.restSec)*1000};}
-  beep(990,200);setTimeout(()=>beep(990,200),300);setTimeout(()=>beep(1320,400),600);try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}save();autoSummary(R.wid);paint();}
+  beep(990,200);setTimeout(()=>beep(990,200),300);setTimeout(()=>beep(1320,400),600);try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}save();{const w0=findW(R.wid);const x0=w0&&w0.exercises.find(q=>q.uid===R.xid);const lastT=x0&&setsDone(x0);if(lastT){const nt=nextExText(w0,x0);if(nt)speak(nt);}}autoSummary(R.wid);paint();}
 // A timed exercise starts its own countdown (Реди, Стеди, Го) as soon as its card is on screen
 function autoRun(){const top=UI.stack[UI.stack.length-1];if(!top||top.key!=='wk'||UI.wkView==='list'||UI.run||UI.rest)return;const w=findW(top.id);if(!w||w.status!=='active'||!own())return;
   const x=curEx(w);if(!x||UI.stopped===x.uid)return;const e=exById(x.exId);if(!e||!e.timed)return;const i=x.sets.findIndex(s=>!s.done&&!s.warm);if(i<0)return;startRun(w.id,x.uid,i);paint();}
@@ -1203,6 +1251,7 @@ function tick(){const top=UI.stack[UI.stack.length-1];const w=top&&top.id?S.work
   if(UI.rest){const left=UI.rest.end-Date.now();if(left<=0){UI.rest=null;paint();toast('Отдых закончен');try{navigator.vibrate&&navigator.vibrate(200);}catch(e){}}else{const r=$('#restT');if(r)r.textContent=fmtT(left);}}}
 /* ============ boot ============ */
 snapshotDaily();
+handleLaunch();
 paint();
 setInterval(tick,250);
 </script>
