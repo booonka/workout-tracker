@@ -4,12 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f2f2f7">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Тренировки">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Трекер тренировок</title>
 <style>
 :root{--bg:#f2f2f7;--card:#fff;--text:#000;--text2:#6c6c70;--text3:#8e8e93;--sep:#c6c6c8;--fill:#e9e9eb;--accent:#007aff;--accentbg:rgba(0,122,255,.12);--danger:#ff3b30;--warn:#b35c00;--nav:rgba(249,249,249,.94);--onacc:#fff;--shadow:0 1px 2px rgba(0,0,0,.06)}
@@ -160,6 +154,21 @@ details.how summary{color:var(--accent);cursor:pointer;min-height:40px;display:f
 .cal button.sel{background:var(--accentbg)}
 .cal button.out{color:var(--text3)}
 .cal .dots{height:8px;display:flex;justify-content:center;align-items:center}
+.dot.ring{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--rc)}
+.wkh{display:flex;align-items:center;justify-content:space-between;padding:0 0 4px}
+.wkstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:6px 0}
+.wkstrip button{border:0;background:none;border-radius:12px;padding:6px 0;cursor:pointer;color:var(--text2);font-size:12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.wkstrip button .n{font-size:17px;font-weight:600;color:var(--text)}
+.wkstrip button.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.wkstrip i{display:block;width:10px;height:10px;border-radius:50%;background:var(--fill)}
+.wkstrip i.ring{background:transparent;box-shadow:inset 0 0 0 2px var(--rc)}
+.wrow{display:grid;grid-template-columns:78px 1fr 62px;gap:8px;align-items:center;padding:5px 0;font-size:15px}
+.wrow .v{text-align:right;font-variant-numeric:tabular-nums;font-size:14px}
+.wbar{position:relative;height:8px;border-radius:4px;background:var(--fill);overflow:hidden}
+.wbar b,.wbar u{position:absolute;top:0;bottom:0}.wbar u{opacity:.4}
+.wbar s{position:absolute;top:0;bottom:0;width:2px;background:var(--text3)}
+.wh{border-left:4px solid var(--text3);background:var(--fill);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;line-height:1.35}
+.wh.warn{border-color:var(--warn)}.wh.bad{border-color:var(--danger)}.wh.ok{border-color:#34c759}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:12px}
 .days div{text-align:center;font-size:12px;color:var(--text2)}
 .days i{display:block;width:28px;height:28px;border-radius:50%;margin:4px auto 4px;background:var(--fill)}
@@ -185,6 +194,12 @@ details.how summary{color:var(--accent);cursor:pointer;min-height:40px;display:f
 #toast:empty{display:none}
 #toast button{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;min-height:36px;font-size:15px}
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Тренировки">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
 <div id="app"></div>
@@ -407,7 +422,7 @@ const fromD=v=>{const kg=isLb()?v/LB:v;return Math.round(kg*100)/100;};
 const fmtW=kg=>String(toD(kg||0));
 
 /* ============ state ============ */
-function freshDef(){return{v:1,themeMig:true,onboarded:false,drafts:[],profile:{name:'',heightCm:'',weightKg:'',units:'kg',step:2.5,restSec:90,detail:false,coach:false,theme:'light',avoid:[],limits:[],weights:[]},gyms:[],templates:[],workouts:[],custom:[],students:[],snaps:[],lastBackupAt:null,lastSnapDay:null,lastGym:null};}
+function freshDef(){return{v:1,themeMig:true,onboarded:false,drafts:[],plans:[],profile:{name:'',heightCm:'',weightKg:'',units:'kg',step:2.5,restSec:90,detail:false,coach:false,theme:'light',avoid:[],limits:[],weights:[]},gyms:[],templates:[],workouts:[],custom:[],students:[],snaps:[],lastBackupAt:null,lastSnapDay:null,lastGym:null};}
 function load(){const d=freshDef();try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);if(!p.themeMig){p.profile=p.profile||{};p.profile.theme='light';p.themeMig=true;}return Object.assign(d,p);}}catch(e){console.warn(e);}return d;}
 let S=load();
 const UI={tab:'home',mapView:'body',cur:{},wkView:'card',run:null,stopped:null,stack:[],view:null,hm:ld().slice(0,7),hday:null,hf:{type:'',gym:'',group:''},period:'month',metric:'sets',progEx:'',pickQ:'',pickG:'',undo:null,tt:0,rest:null,activeX:null};
@@ -415,7 +430,7 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Не хватает места для сохранения');}}
 function ctx(){if(!UI.view)return S;const st=S.students.find(s=>s.id===UI.view);return st?st.data:S;}
 function own(){return !UI.view;}
-const WRITE=new Set(['startWk','pickType','step','check','warm','addSet','delSet','doneSet','pickSel','pickNew','cSave','exAlt','exBroken','exAvoid','exRest','exDel','finish','saveWk','dupWk','delWk','toTpl','actSave','tplNew','tplStart','tplDel','tplAddEx','tplExDel','gymMake','gymDel','gymEqT','gymBrokenT','gymNew','limitAdd','limitDel','avoidDel','importPick','snapRestore','studentDel','onb','setUnits','togg','theme','exMenu','pickEx','gymPick','wkDate','exNote','setv','tplf','tplx','gymName','prof','setting','file','tplSave','tplStartDraft','tplShareD','tplDelD','wkMeta','exCoach','planFill','chatSend','chatQuick','chatNewTpl','setSex','exSkip','exMove','runStart','runStop','wkView']);
+const WRITE=new Set(['startWk','pickType','step','check','warm','addSet','delSet','doneSet','pickSel','pickNew','cSave','exAlt','exBroken','exAvoid','exRest','exDel','finish','saveWk','dupWk','delWk','toTpl','actSave','tplNew','tplStart','tplDel','tplAddEx','tplExDel','gymMake','gymDel','gymEqT','gymBrokenT','gymNew','limitAdd','limitDel','avoidDel','importPick','snapRestore','studentDel','onb','setUnits','togg','theme','exMenu','pickEx','gymPick','wkDate','exNote','setv','tplf','tplx','gymName','prof','setting','file','tplSave','tplStartDraft','tplShareD','tplDelD','wkMeta','exCoach','planFill','chatSend','chatQuick','chatNewTpl','setSex','exSkip','exMove','runStart','runStop','wkView','planFromTpl','planNew','planEdit','planSave','planStartDraft','planStart','planDel','planDelD']);
 function allEx(D=ctx()){return LIB.concat(D.custom||[]);}
 function exById(id,D=ctx()){return LIB.find(e=>e.id===id)||(D.custom||[]).find(e=>e.id===id)||null;}
 function restricted(D=ctx()){const s=new Set();(D.profile.limits||[]).forEach(l=>{if(l.status==='now')(l.groups||[]).forEach(g=>s.add(g));});return s;}
@@ -470,6 +485,7 @@ function vHome(D){
   let h=`<h1>${self?'Главная':'Ученик: '+esc(name||'')}</h1>`;
   if(!self)h+=`<div class="card banner"><span class="muted">Просмотр данных ученика, без изменений</span><button class="linkbtn" data-a="studentExit">Выйти</button></div>`;
   if(self&&act)h+=`<div class="card cont" data-a="openWk" data-id="${act.id}"><b>Продолжить тренировку</b><div class="muted small">${TYPES[act.type].n} · начата ${fmtD(act.date)}</div></div>`;
+  if(self&&!act)h+=todayHTML();
   if(self){const qs=D.templates.slice().sort((a,b)=>(b.lastUsed||0)-(a.lastUsed||0)).slice(0,3);const lastDone=D.workouts.filter(x=>x.status==='done'&&x.type!=='activity').sort((a,b)=>(b.date+(b.endedAt||0)).localeCompare(a.date+(a.endedAt||0)))[0];
     if(qs.length||lastDone)h+=`<div class="sec">Быстрый старт</div><div class="grp">`+qs.map(t=>`<button class="li" data-a="tplStart" data-id="${t.id}"><div class="grow"><b>${esc(t.name)}</b><div class="muted small">${TYPES[t.type].n} · ${t.exercises.length} упр.${t.minutes?' · ~'+t.minutes+' мин':''}</div></div><span class="startbtn">▶ Старт</span></button>`).join('')+(lastDone?`<button class="li" data-a="dupWk" data-id="${lastDone.id}"><div class="grow"><b>Повторить прошлую</b><div class="muted small">${TYPES[lastDone.type].n} · ${fmtD(lastDone.date)}</div></div><span class="startbtn">▶ Старт</span></button>`:'')+`</div>`;}
   if(self&&backupDue())h+=`<div class="card banner" style="flex-wrap:wrap;gap:8px"><span>${backupAge()===null?'Копии данных ещё нет. Сохраните её, чтобы не потерять тренировки.':'Копия данных сделана '+backupAge()+' дн. назад.'}</span><span><button class="linkbtn" data-a="exFull">Сохранить копию</button> <button class="linkbtn muted" data-a="backupLater">Позже</button></span></div>`;
@@ -478,7 +494,7 @@ function vHome(D){
   const mon=monday(ld());let dots='';
   ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach((n,i)=>{const d=addDays(mon,i);const ws=D.workouts.filter(w=>w.date===d);const col=ws.length?TYPES[ws[0].type].c:'';
     dots+=`<div>${n}<i class="${ws.length?'on':''} ${d===ld()?'today':''}" style="${ws.length?'background:'+col:''}"></i></div>`;});
-  h+=`<div class="card"><div class="sec" style="margin:0 0 6px">Эта неделя</div><div class="days">${dots}</div></div>`;
+  h+=self?weekBlock(UI.wkOff||0,true):`<div class="card"><div class="sec" style="margin:0 0 6px">Эта неделя</div><div class="days">${dots}</div></div>`;
   // 7 day muscle mini map
   const a7=agg(D,addDays(ld(),-6));const mx=Math.max(1,...Object.values(a7.big).map(v=>v.sets));
   let mini='';Object.keys(BIG).forEach(g=>{const v=a7.big[g]?a7.big[g].sets:0;mini+=`<div class="mrow" style="grid-template-columns:86px 1fr 40px"><span>${BIG[g].n}</span><div class="track"><i style="width:${v/mx*100}%;background:${BIG[g].c}"></i></div><span class="v">${v}</span></div>`;});
@@ -501,7 +517,7 @@ function vHistory(D){
   const byDate={};list.forEach(w=>{(byDate[w.date]=byDate[w.date]||[]).push(w);});
   let cells='';for(let i=0;i<off;i++)cells+='<span></span>';
   for(let d=1;d<=dim;d++){const iso=UI.hm+'-'+pad(d);const ws=byDate[iso]||[];
-    const dd=ws.slice(0,4).map(w=>`<span class="dot" style="background:${TYPES[w.type].c}"></span>`).join('');
+    const dd=ws.slice(0,4).map(w=>`<span class="dot" style="background:${TYPES[w.type].c}"></span>`).join('')+(own()?plansOn(iso).slice(0,2).map(p=>`<span class="dot ring" style="--rc:${(TYPES[p.type]||TYPES.empty).c}"></span>`).join(''):'');
     cells+=`<button class="${iso===ld()?'today':''} ${UI.hday===iso?'sel':''}" data-a="hday" data-d="${iso}">${d}<div class="dots">${dd}</div></button>`;}
   const wd=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(x=>`<div class="wd">${x}</div>`).join('');
   const monthName=first.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
@@ -512,6 +528,7 @@ function vHistory(D){
   h+=`<div class="card" style="padding:4px 0 0"><div class="row" style="justify-content:space-between;padding:8px 12px"><button class="iconbtn" data-a="mon" data-d="-1">‹</button><b style="text-transform:capitalize">${monthName}</b><button class="iconbtn" data-a="mon" data-d="1">›</button></div><div class="cal">${wd}${cells}</div>${UI.hday?`<div style="padding:0 12px 10px"><button class="linkbtn" data-a="hday" data-d="">Показать весь месяц</button></div>`:''}</div>`;
   h+=`<div class="sub" style="margin-top:4px"></div><div class="row" style="margin:0 16px 12px;gap:8px"><label class="chip"><select data-c="hf" data-f="type">${groups.map(([k,n])=>`<option value="${k}" ${f.type===k?'selected':''}>${n}</option>`).join('')}</select></label><label class="chip"><select data-c="hf" data-f="gym"><option value="">Все залы</option>${S.gyms.map(g=>`<option value="${g.id}" ${f.gym===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}</select></label><label class="chip"><select data-c="hf" data-f="group"><option value="">Все группы</option>${Object.keys(BIG).map(k=>`<option value="${k}" ${f.group===k?'selected':''}>${BIG[k].n}</option>`).join('')}</select></label></div>`;
   h+=`<div class="sec">${UI.hday?fmtDW(UI.hday):'За месяц'}</div>`;
+  if(own()&&UI.hday){const pl=plansOn(UI.hday);if(pl.length)h+=`<div class="grp" style="margin-bottom:8px">${pl.map(p=>planRow(p,UI.hday<=ld())).join('')}</div>`;h+=`<div class="stack" style="margin-bottom:8px"><button class="btn tonal" data-a="planDay" data-d="${UI.hday}">${pl.length?'Изменить план дня':'Запланировать тренировку'}</button></div>`;}
   h+=sel.length?sel.map(w=>wCard(w,D)).join(''):`<div class="hint">Тренировок нет.</div>`;
   if(!own())h+='';
   return h;
@@ -541,6 +558,7 @@ function vProgress(D){
   h+=`<div class="seg">${seg('metric','Подходы','sets')}${seg('metric','Тоннаж','ton')}</div>`;
   h+=`<div class="chips"><button data-a="toggleDetail" class="${S.profile.detail?'on':''}">${S.profile.detail?'Подробно':'Крупные группы'}</button></div>`;
   h+=`<div class="card"><div class="kv"><span>На этой неделе</span><span>${nWeek} тр.</span></div><div class="kv"><span>Серия недель подряд</span><span>${streak}</span></div></div>`;
+  if(P==='week'&&own())h+=weekBlock(0,false);
   h+=`<div class="sec">Карта мышц</div><div class="seg">${seg('mapView','Тело','body')}${seg('mapView','Полосы','bars')}</div><div class="card">${UI.mapView==='bars'?groupsLoad(D,from,UI.metric,S.profile.detail)+'<div class="muted small" style="margin-top:6px">Полоса — относительно самой нагруженной группы за период. Активности в карту не входят.</div>':bodyHTML(D,from,UI.metric,S.profile.detail)}</div>`;
   h+=`<div class="sec">Прогресс по упражнению</div><div class="card">`;
   h+=exOpts.length?`<label class="field"><span>Упражнение</span><select data-c="progEx">${exOpts.map(e=>`<option value="${e.id}" ${e.id===curEx?'selected':''}>${esc(e.name)}</option>`).join('')}</select></label>${chart(pts)}`+(prs?`<div class="kv" style="margin-top:8px"><span>Личный рекорд по весу</span><span>${fmtW(prs.w)} ${unitL()} × ${prs.r} · ${fmtD(prs.x)}</span></div>`:''):'<div class="muted">Пока нет выполненных подходов.</div>';
@@ -689,7 +707,7 @@ SH.onb=()=>({t:'Добро пожаловать',b:`<div class="card"><h1 style=
   <div class="stack">${Object.keys(GYM_STARTERS).map(k=>`<button class="btn tonal" data-a="onb" data-k="${k}">${GYM_STARTERS[k].name}</button>`).join('')}<button class="btn" style="background:var(--fill)" data-a="onbSkip">Пропустить</button></div>`,r:''});
 SH.types=s=>{const lastL=agg(ctx(),'').big.legs;const rec=!lastL||dayDiff(ld(),lastL.last)>=7;
   return{t:s.tpl?'Тип шаблона':'Тип тренировки',b:`<div class="hint">Зал: <select data-c="gymPick" style="width:auto">${gymOpts(S.lastGym)}</select></div><div class="hint">Сколько времени есть?</div><div class="chips">${[0,30,45,60,90].map(m=>`<button class="${(UI.planPick||0)===m?'on':''}" data-a="planPick" data-m="${m}">${m?m+' мин':'Не задано'}</button>`).join('')}</div>${UI.planPick?`<div class="hint">${capLine(UI.planPick)}</div>`:''}`+
-  ['fullbody','upper','lower','calisthenics','activity','empty'].filter(k=>!(s.tpl&&k==='activity')).map(k=>`<div class="stack" style="margin-bottom:10px"><button class="card" style="text-align:left;margin:0;border:0;cursor:pointer;border-left:5px solid ${TYPES[k].c}" data-a="pickType" data-t="${k}" data-tpl="${s.tpl?1:''}"><div style="font-size:19px;font-weight:600">${TYPES[k].n}${k==='lower'&&rec?' <span class="badge ok">рекомендуется</span>':''}</div><div class="muted small">${TYPES[k].d}</div></button></div>`).join('')};};
+  ['fullbody','upper','lower','calisthenics','activity','empty'].filter(k=>!((s.tpl||s.plan)&&k==='activity')).map(k=>`<div class="stack" style="margin-bottom:10px"><button class="card" style="text-align:left;margin:0;border:0;cursor:pointer;border-left:5px solid ${TYPES[k].c}" data-a="pickType" data-t="${k}" data-tpl="${s.plan?'plan':s.tpl?1:''}"><div style="font-size:19px;font-weight:600">${TYPES[k].n}${k==='lower'&&rec?' <span class="badge ok">рекомендуется</span>':''}</div><div class="muted small">${TYPES[k].d}</div></button></div>`).join('')};};
 const setsDone=x=>x.sets.length>0&&x.sets.every(s=>s.done);
 function curEx(w){const list=w.exercises;if(!list.length)return null;let x=list.find(q=>q.uid===UI.cur[w.id]);
   if(!x||setsDone(x)){const start=x?list.indexOf(x):-1;x=list.slice(start+1).find(q=>!setsDone(q))||list.find(q=>!setsDone(q))||null;UI.cur[w.id]=x?x.uid:null;UI.stopped=null;}return x;}
@@ -715,7 +733,7 @@ function wkCard(w,D){if(ovOn(w))return wkOverview(w,D);const x=curEx(w);const n=
   return h;}
 SH.wk=s=>{const w=findW(s.id);if(!w)return{t:'Тренировка',b:'<div class="card">Тренировка не найдена</div>'};
   const D=ctx();const t=TYPES[w.type];const g=gymOf(w.gymId);const act=w.status==='active';const tp=!!w.tpl;
-  const r=tp?`<button class="linkbtn" data-a="tplSave" data-id="${w.id}">Сохранить</button>`:act?`<button class="linkbtn" data-a="finish" data-id="${w.id}">Завершить</button>`:'';
+  const r=tp?`<button class="linkbtn" data-a="${w.planId?'planSave':'tplSave'}" data-id="${w.id}">Сохранить</button>`:act?`<button class="linkbtn" data-a="finish" data-id="${w.id}">Завершить</button>`:'';
   if(w.type==='activity'){const a=w.activity||{};return{t:'Активность',r:'',b:`<div class="card"><div class="kv"><span>Вид</span><span>${esc(a.kind)}</span></div><div class="kv"><span>Дата</span><span>${fmtDW(w.date)}</span></div><div class="kv"><span>Время</span><span>${a.minutes||0} мин</span></div><div class="kv"><span>Дистанция / партии</span><span>${esc(a.dist||'—')}</span></div>${a.note?`<div class="muted" style="margin-top:8px">${esc(a.note)}</div>`:''}</div>${own()?`<div class="stack"><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить</button></div>`:''}`};}
   const cardMode=act&&own()&&UI.wkView!=='list';
   let b='';
@@ -727,7 +745,7 @@ SH.wk=s=>{const w=findW(s.id);if(!w)return{t:'Тренировка',b:'<div clas
     b+=`<div class="bottom"><button class="iconbtn" style="min-width:52px;min-height:50px;font-size:22px" data-a="pickEx" data-id="${w.id}" aria-label="Добавить упражнение">+</button>${x?`<button class="btn tonal" data-a="exSkip" data-id="${w.id}" data-x="${x.uid}">Пропустить</button><button class="btn primary" data-a="doneSet" data-id="${w.id}">Подход выполнен</button>`:`<button class="btn primary" data-a="finish" data-id="${w.id}">Завершить</button>`}</div>`;
     return{t:fmtD(w.date),r,b};}
   if(tp||act){const tk=Object.keys(TYPES).filter(k=>k!=='activity');
-    b+=`<div class="card">${tp?`<label class="field"><span>Название шаблона</span><input type="text" value="${esc(w.tplName)}" data-c="wkMeta" data-id="${w.id}" data-f="tplName"></label>`:''}<div class="row"><label class="field grow"><span>Тип</span><select data-c="wkMeta" data-id="${w.id}" data-f="type">${tk.map(k=>`<option value="${k}" ${k===w.type?'selected':''}>${TYPES[k].n}</option>`).join('')}</select></label><label class="field grow"><span>Зал</span><select data-c="wkMeta" data-id="${w.id}" data-f="gymId"><option value="">Без зала</option>${S.gyms.map(x=>`<option value="${x.id}" ${x.id===w.gymId?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label></div><label class="field"><span>Планируемое время, мин</span><input type="number" inputmode="numeric" value="${w.plan||''}" placeholder="не задано" data-c="wkMeta" data-id="${w.id}" data-f="plan"></label><div class="row"><span class="muted small grow">Расчёт по подходам и отдыху: ≈ ${estMin(w)} мин</span><button class="linkbtn" data-a="planFill" data-id="${w.id}">Подставить</button></div>${planAdvice(w)}<button class="btn tonal" style="margin-top:10px" data-a="chatOpen" data-id="${w.id}">Помощник: собрать и подсказать</button></div>`;}
+    b+=`<div class="card">${tp?`<label class="field"><span>${w.planId?'Название (необязательно)':'Название шаблона'}</span><input type="text" value="${esc(w.tplName)}" data-c="wkMeta" data-id="${w.id}" data-f="tplName"></label>`:''}${w.planId?`<label class="field"><span>Дата тренировки</span><input type="date" value="${w.date}" data-c="wkDate" data-id="${w.id}"></label>`:''}<div class="row"><label class="field grow"><span>Тип</span><select data-c="wkMeta" data-id="${w.id}" data-f="type">${tk.map(k=>`<option value="${k}" ${k===w.type?'selected':''}>${TYPES[k].n}</option>`).join('')}</select></label><label class="field grow"><span>Зал</span><select data-c="wkMeta" data-id="${w.id}" data-f="gymId"><option value="">Без зала</option>${S.gyms.map(x=>`<option value="${x.id}" ${x.id===w.gymId?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label></div><label class="field"><span>Планируемое время, мин</span><input type="number" inputmode="numeric" value="${w.plan||''}" placeholder="не задано" data-c="wkMeta" data-id="${w.id}" data-f="plan"></label><div class="row"><span class="muted small grow">Расчёт по подходам и отдыху: ≈ ${estMin(w)} мин</span><button class="linkbtn" data-a="planFill" data-id="${w.id}">Подставить</button></div>${planAdvice(w)}<button class="btn tonal" style="margin-top:10px" data-a="chatOpen" data-id="${w.id}">Помощник: собрать и подсказать</button></div>`;}
   else b+=`<div class="sub">${esc(g?g.name:'Без зала')} · ${t.n}</div>`;
   if(act)b+=timerCard;
   else if(!tp)b+=`<div class="card"><label class="field" style="margin:0"><span>Дата</span><input type="date" value="${w.date}" data-c="wkDate" data-id="${w.id}"></label></div>`;
@@ -735,10 +753,11 @@ SH.wk=s=>{const w=findW(s.id);if(!w)return{t:'Тренировка',b:'<div clas
   if(t.groups)b+=balanceHTML(w,D);
   w.exercises.forEach(ex=>{b+=exCard(ex,w,D);});
   if(!w.exercises.length)b+=`<div class="hint">Пока нет упражнений. Нажмите «+ Упражнение».</div>`;
-  if(tp)b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="tplStartDraft" data-id="${w.id}">Начать тренировку</button><button class="btn tonal" data-a="tplShareD" data-id="${w.id}">Поделиться шаблоном</button><button class="btn danger" data-a="tplDelD" data-id="${w.id}">Удалить шаблон</button></div><div class="bottom"><button class="btn tonal" data-a="pickEx" data-id="${w.id}">+ Упражнение</button><button class="btn primary" data-a="tplSave" data-id="${w.id}">Сохранить шаблон</button></div>`;
+  if(tp&&w.planId)b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="planStartDraft" data-id="${w.id}">Начать сейчас</button><button class="btn danger" data-a="planDelD" data-id="${w.id}">Убрать из плана</button></div><div class="bottom"><button class="btn tonal" data-a="pickEx" data-id="${w.id}">+ Упражнение</button><button class="btn primary" data-a="planSave" data-id="${w.id}">Сохранить в план</button></div>`;
+  else if(tp)b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="tplStartDraft" data-id="${w.id}">Начать тренировку</button><button class="btn tonal" data-a="tplShareD" data-id="${w.id}">Поделиться шаблоном</button><button class="btn danger" data-a="tplDelD" data-id="${w.id}">Удалить шаблон</button></div><div class="bottom"><button class="btn tonal" data-a="pickEx" data-id="${w.id}">+ Упражнение</button><button class="btn primary" data-a="tplSave" data-id="${w.id}">Сохранить шаблон</button></div>`;
   if(!act&&!tp&&own())b+=`<div class="stack" style="margin-top:12px"><button class="btn tonal" data-a="toHealth" data-id="${w.id}">Записать в «Здоровье»</button><button class="btn tonal" data-a="dupWk" data-id="${w.id}">Продублировать</button><button class="btn tonal" data-a="toTpl" data-id="${w.id}">Сохранить как шаблон</button><button class="btn danger" data-a="delWk" data-id="${w.id}">Удалить тренировку</button></div>`;
   if(act&&own())b+=`<div class="bottom"><button class="btn tonal" data-a="pickEx" data-id="${w.id}">+ Упражнение</button><button class="btn primary" data-a="doneSet" data-id="${w.id}">Подход выполнен</button></div>`;
-  return{t:tp?'Шаблон':fmtD(w.date),r,b};};function balanceHTML(w,D){const t=TYPES[w.type];const nm=NORM[t.norm];const rs=restricted(D);const c=countW(w,D).big;const miss=[];
+  return{t:tp?(w.planId?'План на '+fmtD(w.date):'Шаблон'):fmtD(w.date),r,b};};function balanceHTML(w,D){const t=TYPES[w.type];const nm=NORM[t.norm];const rs=restricted(D);const c=countW(w,D).big;const miss=[];
   const cols=t.groups.map(g=>{const B=BIG[g];if(rs.has(g))return`<div class="bcol restricted"><div class="bn">${B.n}</div><div class="track"></div><div class="bv">на паузе</div></div>`;
     const n=c[g]?c[g].sets:0;const lv=lvl(n,nm);if(n<nm.lo)miss.push(B.n);const p=Math.min(100,n/nm.hi*100);
     return`<div class="bcol ${lv}"><div class="bn">${B.n}</div><div class="track"><i style="width:${p}%;background:${B.c}"></i></div><div class="bv">${n} из ${nm.lo}–${nm.hi}${lv==='many'?' · много':''}</div></div>`;}).join('');
@@ -870,6 +889,7 @@ SH.automation=()=>{const B=SC_BASE();const age=backupAge();
   <div class="sec">Ссылки для команд</div><div class="grp">
   ${link('Повторить прошлую тренировку',B+'?start=quick','Для действия «Открыть URL» в командах запуска')}
   ${link('Запустить шаблон',B+'?start=Название','Замените «Название» на имя вашего шаблона')}
+  ${link('Начать запланированную',B+'?start=plan','Запускает тренировку, запланированную на сегодня')}
   ${link('Подход выполнен',B+'?do=set','Отмечает следующий подход в активной тренировке')}
   ${link('Пропустить упражнение',B+'?do=skip','Переносит текущее упражнение в конец')}
   ${link('Прогресс',B+'?tab=progress','Открывает вкладку «Прогресс»')}
@@ -942,7 +962,10 @@ ACT.gymName=null;
 ACT.gymShare=p=>{const g=S.gyms.find(x=>x.id===p.id);exportFile('gym',g,'zal-'+g.name);};
 ACT.exGym=null;
 ACT.startWk=()=>{UI.stack.push({key:'types'});paint();};
-ACT.pickType=p=>{if(p.tpl){const gid=S.lastGym&&S.gyms.some(g=>g.id===S.lastGym)?S.lastGym:(S.gyms[0]&&S.gyms[0].id)||null;
+ACT.pickType=p=>{if(p.tpl==='plan'){const gid=S.lastGym&&S.gyms.some(g=>g.id===S.lastGym)?S.lastGym:(S.gyms[0]&&S.gyms[0].id)||null;
+    const d={id:uid('w'),tpl:true,tplId:null,planId:uid('p'),tplName:'',type:p.t,gymId:gid,plan:UI.planPick||0,date:UI.planDate||ld(),startedAt:Date.now(),status:'tpl',exercises:[]};UI.planPick=0;
+    (S.drafts=S.drafts||[]).push(d);save();UI.stack.pop();UI.stack.push({key:'wk',id:d.id});paint();return;}
+  if(p.tpl){const gid=S.lastGym&&S.gyms.some(g=>g.id===S.lastGym)?S.lastGym:(S.gyms[0]&&S.gyms[0].id)||null;
     const d={id:uid('w'),tpl:true,tplId:uid('t'),tplName:'Новый шаблон',type:p.t,gymId:gid,plan:UI.planPick||0,date:ld(),startedAt:Date.now(),status:'tpl',exercises:[]};UI.planPick=0;
     (S.drafts=S.drafts||[]).push(d);save();UI.stack=[{key:'tplList'},{key:'wk',id:d.id}];paint();return;}
   if(p.t==='activity'){UI.stack=[{key:'actForm'}];paint();return;}
@@ -1025,6 +1048,71 @@ ACT.backupShortcut=async()=>{const{snaps,...rest}=S;const text=JSON.stringify({t
   try{await navigator.clipboard.writeText(text);}catch(e){return toast('Не удалось скопировать данные. Используйте «Сохранить копию».');}
   location.href='shortcuts://x-callback-url/run-shortcut?name='+encodeURIComponent('Копия трекера')+'&x-success='+encodeURIComponent(SC_BASE()+'?backup=ok')+'&x-cancel='+encodeURIComponent(SC_BASE());};
 ACT.copyTxt=async p=>{try{await navigator.clipboard.writeText(p.t);toast('Скопировано');}catch(e){toast('Не удалось скопировать');}};
+/* ============ planning: scheduled workouts and week hints ============ */
+const WKN={chest:[8,22],back:[10,25],shoulders:[8,22],arms:[6,20],legs:[10,25],glutes:[6,20],core:[4,20]};
+const plansOn=d=>(S.plans||[]).filter(p=>p.date===d);
+function planSets(p){const big={};(p.exercises||[]).forEach(x=>{const e=exById(x.exId);if(!e)return;const g=subBig[e.sub];big[g]=(big[g]||0)+(x.sets||0);});return big;}
+function weekData(off){const mon=addDays(monday(ld()),7*off);const days=[];const tot={};Object.keys(BIG).forEach(g=>tot[g]={done:0,plan:0});
+  for(let i=0;i<7;i++){const d=addDays(mon,i);const per={};
+    const ws=S.workouts.filter(w=>w.date===d&&w.type!=='activity');
+    ws.forEach(w=>{const c=countW(w,S).big;for(const g in c){per[g]=(per[g]||0)+c[g].sets;tot[g].done+=c[g].sets;}});
+    const pl=plansOn(d);
+    pl.filter(p=>p.date>=ld()).forEach(p=>{const c=planSets(p);for(const g in c){per[g]=(per[g]||0)+c[g];tot[g].plan+=c[g];}});
+    days.push({d,per,ws,plans:pl,busy:ws.length>0||pl.some(p=>p.date>=ld())});}
+  return{mon,days,tot};}
+function weekHints(wd,off){const it=[];const rs=restricted(S);const gs=Object.keys(BIG);
+  const sum=gs.reduce((a,g)=>a+wd.tot[g].done+wd.tot[g].plan,0);
+  if(!sum)return[{c:'',t:off<0?'На этой неделе тренировок не было.':'На неделе пока ничего не запланировано. Добавьте тренировки, и здесь появятся подсказки по нагрузке.'}];
+  gs.forEach(g=>{if(rs.has(g))return;const n=wd.tot[g].done+wd.tot[g].plan,lo=WKN[g][0],hi=WKN[g][1],nm=BIG[g].n;
+    if(n<lo)it.push({c:n?'warn':'bad',t:`<b>${nm}: недокачано.</b> ${n?n+' подх. при норме '+lo+'–'+hi+' в неделю':'Ни одного подхода'}${off<0?'.':'. Добавьте ещё '+(lo-n)+' подх.'}`});
+    else if(n>hi)it.push({c:'bad',t:`<b>${nm}: перекачано.</b> ${n} подх. при норме ${lo}–${hi}. Лучше убрать около ${n-hi} подх., иначе мышцам не хватит времени восстановиться.`});});
+  for(let i=0;i<6;i++)gs.forEach(g=>{if(rs.has(g))return;if((wd.days[i].per[g]||0)>=6&&(wd.days[i+1].per[g]||0)>=6)it.push({c:'warn',t:`<b>${BIG[g].n}: два дня подряд</b> (${fmtDW(wd.days[i].d)} и ${fmtDW(wd.days[i+1].d)}). Мышцам нужно около 48 часов на восстановление, лучше разнести тренировки.`});});
+  if(wd.days.filter(d=>d.busy).length>=6)it.push({c:'warn',t:'<b>Почти нет дней отдыха.</b> Оставьте хотя бы один день без тренировок.'});
+  if(!it.length)it.push({c:'ok',t:'<b>Баланс недели в норме.</b> Нагрузка по всем группам в пределах нормы.'});
+  if(rs.size)it.push({c:'',t:'Группы с ограничениями ('+[...rs].map(g=>BIG[g].n.toLowerCase()).join(', ')+') в подсказках не учитываются.'});
+  return it;}
+function weekBlock(off,strip){const wd=weekData(off);const H=weekHints(wd,off);const sun=addDays(wd.mon,6);const rng=fmtD(wd.mon)+' – '+fmtD(sun);
+  const title=off===0?'Эта неделя':off===1?'Следующая неделя':off===-1?'Прошлая неделя':'Неделя';
+  let h=`<div class="card"><div class="wkh">${strip?`<button class="iconbtn" data-a="wkNav" data-n="-1" aria-label="Предыдущая неделя">‹</button>`:'<span></span>'}<div style="text-align:center"><b>${title}</b><div class="muted small">${rng}</div></div>${strip?`<button class="iconbtn" data-a="wkNav" data-n="1" aria-label="Следующая неделя">›</button>`:'<span></span>'}</div>`;
+  if(strip){h+=`<div class="wkstrip">${wd.days.map((c,i)=>{const f=c.ws[0];const p=c.plans[0];const col=f?TYPES[f.type].c:p?TYPES[p.type].c:'';
+    return`<button class="${c.d===ld()?'today':''}" data-a="planDay" data-d="${c.d}"><span>${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][i]}</span><span class="n">${+c.d.slice(8)}</span><i class="${f?'on':p?'ring':''}" style="${f?'background:'+col:p?'--rc:'+col:''}"></i></button>`;}).join('')}</div><div class="muted small" style="text-align:center">закрашено: выполнено · кольцо: запланировано · нажмите на день</div>`;}
+  const gs=Object.keys(BIG);
+  h+=`<div class="sec" style="margin:10px 0 4px">Нагрузка за неделю, подходы</div>`+gs.map(g=>{const d=wd.tot[g].done,p=wd.tot[g].plan,S30=30;const lo=WKN[g][0],hi=WKN[g][1];
+    return`<div class="wrow"><span>${BIG[g].n}</span><div class="wbar"><b style="width:${Math.min(100,d/S30*100)}%;background:${BIG[g].c}"></b><u style="left:${Math.min(100,d/S30*100)}%;width:${Math.max(0,Math.min(100-d/S30*100,p/S30*100))}%;background:${BIG[g].c}"></u><s style="left:${lo/S30*100}%"></s><s style="left:${hi/S30*100}%"></s></div><span class="v">${d+p}${p&&d?` <span class="muted">(+${p})</span>`:''}</span></div>`;}).join('')+`<div class="muted small">Тёмная часть: сделано, светлая: по плану. Две отметки на полосе: норма в неделю (от и до).</div>`;
+  h+=`<div class="sec" style="margin:12px 0 4px">Подсказки</div>`+H.map(x=>`<div class="wh ${x.c}">${x.t}</div>`).join('')+`</div>`;
+  return h;}
+function planRow(p,start){const t=TYPES[p.type]||TYPES.empty;const late=p.date<ld();
+  return`<div class="li" style="padding:0"><button class="pbtn" data-a="planEdit" data-id="${p.id}"><div class="grow"><div>${esc(p.name||t.n)}${late?` <span class="badge warn">с ${fmtD(p.date)}</span>`:''}</div><div class="muted small">${t.n} · ${p.exercises.length} упр.${p.minutes?' · ~'+p.minutes+' мин':''}${p.date>ld()?' · '+fmtDW(p.date):''}</div></div></button>${start?`<button class="startbtn" style="margin-right:12px" data-a="planStart" data-id="${p.id}">▶ Старт</button>`:`<button class="del" style="margin-right:8px" data-a="planDel" data-id="${p.id}" aria-label="Убрать из плана">×</button>`}</div>`;}
+function todayHTML(){const t=ld();const all=(S.plans||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));const now=all.filter(p=>p.date<=t);const soon=all.filter(p=>p.date>t&&p.date<=addDays(t,14));let h='';
+  if(now.length)h+=`<div class="sec">Сегодня по плану</div><div class="grp">${now.map(p=>planRow(p,true)).join('')}</div>`;
+  else if(!S.workouts.some(w=>w.date===t&&w.status==='done'))h+=`<div class="sec">Сегодня</div><div class="card"><b>На сегодня ничего не запланировано</b><div class="muted small" style="margin:4px 0 10px">Выберите шаблон или сразу создайте тренировку.</div><div class="stack"><button class="btn primary" data-a="push" data-k="tplList">Выбрать из шаблонов</button><button class="btn tonal" data-a="startWk">Создать тренировку</button><button class="btn tonal" data-a="planDay" data-d="${t}">Запланировать на день</button></div></div>`;
+  if(soon.length)h+=`<div class="sec">Ближайшие</div><div class="grp">${soon.map(p=>planRow(p,false)).join('')}</div>`;
+  return h;}
+SH.planDay=s=>{const d=s.d;const pl=plansOn(d);const done=S.workouts.filter(w=>w.date===d&&w.status==='done');const off=Math.round(dayDiff(monday(d),monday(ld()))/7);
+  let b='';
+  if(pl.length)b+=`<div class="sec">Запланировано</div><div class="grp">${pl.map(p=>planRow(p,d<=ld())).join('')}</div>`+(d>ld()?'':'');
+  if(done.length)b+=`<div class="sec">Выполнено</div>${done.map(w=>wCard(w,S)).join('')}`;
+  b+=`<div class="sec">Добавить в план</div><div class="grp">${S.templates.length?S.templates.map(t=>`<button class="li" data-a="planFromTpl" data-id="${t.id}" data-d="${d}"><div class="grow"><b>${esc(t.name)}</b><div class="muted small">${TYPES[t.type].n} · ${t.exercises.length} упр.${t.minutes?' · ~'+t.minutes+' мин':''}</div></div><span class="startbtn">+ В план</span></button>`).join(''):'<div class="li muted">Шаблонов пока нет. Можно создать тренировку без шаблона.</div>'}</div>
+  <div class="stack"><button class="btn primary" data-a="planNew" data-d="${d}">Новая тренировка (не шаблон)</button></div>
+  <div class="sec">Неделя для этого дня</div>${weekBlock(off,false)}`;
+  return{t:fmtDW(d),r:'',b};};
+ACT.planDay=p=>{UI.stack.push({key:'planDay',d:p.d});paint();};
+ACT.wkNav=p=>{UI.wkOff=(UI.wkOff||0)+(+p.n);paint();};
+ACT.planFromTpl=p=>{const t=S.templates.find(x=>x.id===p.id);if(!t)return;(S.plans=S.plans||[]).push({id:uid('p'),date:p.d,tplId:t.id,name:t.name,type:t.type,gymId:t.gymId||null,minutes:t.minutes||0,exercises:JSON.parse(JSON.stringify(t.exercises))});save();paint();toast('Запланировано: '+fmtDW(p.d));};
+ACT.planNew=p=>{UI.planDate=p.d;UI.stack.push({key:'types',plan:true});paint();};
+ACT.planEdit=p=>{const pl=(S.plans||[]).find(x=>x.id===p.id);if(!pl)return;S.drafts=(S.drafts||[]).filter(d=>d.planId!==pl.id);const d=tplToDraft(pl);d.tplId=null;d.planId=pl.id;d.date=pl.date;d.tplName=pl.name||'';S.drafts.push(d);save();UI.stack.push({key:'wk',id:d.id});paint();};
+function commitPlan(w){if(!w.exercises.length)return null;
+  const ex=w.exercises.map(x=>{const ws=x.sets.filter(s=>!s.warm);const reps=ws.map(s=>s.r||0).filter(Boolean);return{exId:x.exId,sets:ws.length||3,rmin:reps.length?Math.min(...reps):8,rmax:reps.length?Math.max(...reps):12,w:ws.length?ws[ws.length-1].w:0,tsec:(exById(x.exId)||{}).timed&&ws.length?(ws[ws.length-1].t||30):0,note:x.note||'',coachNote:x.coachNote||'',restSec:x.restSec||null};});
+  S.drafts=(S.drafts||[]).filter(q=>q.id!==w.id);S.plans=S.plans||[];
+  const f={date:w.date||ld(),name:(w.tplName||'').trim(),type:w.type,gymId:w.gymId,minutes:w.plan||0,exercises:ex};
+  let pl=S.plans.find(x=>x.id===w.planId);if(pl)Object.assign(pl,f);else{pl=Object.assign({id:w.planId,tplId:null},f);S.plans.push(pl);}
+  save();return pl;}
+ACT.planSave=p=>{const w=findW(p.id);if(!w)return;const pl=commitPlan(w);if(!pl)return toast('Добавьте хотя бы одно упражнение');UI.stack.pop();paint();toast('План сохранён: '+fmtDW(pl.date));};
+ACT.planStartDraft=p=>{const w=findW(p.id);if(!w)return;const pl=commitPlan(w);if(!pl)return toast('Добавьте хотя бы одно упражнение');ACT.planStart({id:pl.id});};
+ACT.planStart=p=>{const pl=(S.plans||[]).find(x=>x.id===p.id);if(!pl)return;const t0=S.templates.find(x=>x.id===pl.tplId);ACT.tplStart({id:pl.id});if(t0)t0.lastUsed=Date.now();S.plans=S.plans.filter(x=>x.id!==pl.id);save();};
+ACT.planDel=p=>{const i=(S.plans||[]).findIndex(x=>x.id===p.id);if(i<0)return;const[x]=S.plans.splice(i,1);save();paint();toast('Убрано из плана',()=>{S.plans.splice(i,0,x);});};
+ACT.planDelD=p=>{const w=findW(p.id);if(!w)return;S.drafts=(S.drafts||[]).filter(d=>d.id!==w.id);const i=(S.plans||[]).findIndex(x=>x.id===w.planId);let x=null;if(i>=0)[x]=S.plans.splice(i,1);UI.stack.pop();save();paint();if(x)toast('Убрано из плана',()=>{S.plans.splice(i,0,x);});};
+
 function handleLaunch(){try{const q=new URLSearchParams(location.search);if(![...q.keys()].length)return;
   const clean=()=>{try{history.replaceState(null,'',location.pathname);}catch(e){}};
   if(!S.onboarded){clean();return;}
@@ -1034,6 +1122,7 @@ function handleLaunch(){try{const q=new URLSearchParams(location.search);if(![..
   if(bk==='ok'){S.lastBackupAt=new Date().toISOString();S.backupSnooze=0;save();setTimeout(()=>toast('Копия сохранена в iCloud'),400);}
   else if(bk==='1'){UI.stack=[{key:'exchange'}];}
   if(st){if(act){UI.wkView='card';UI.stack=[{key:'wk',id:act.id}];}
+    else if(st==='plan'){const pl=(S.plans||[]).filter(x=>x.date<=ld()).sort((a,b)=>b.date.localeCompare(a.date))[0];if(pl)ACT.planStart({id:pl.id});else setTimeout(()=>toast('На сегодня нет запланированной тренировки'),400);}
     else if(st==='quick'){const last=S.workouts.filter(w=>w.status==='done'&&w.type!=='activity').sort((a,b)=>(b.date+(b.endedAt||0)).localeCompare(a.date+(a.endedAt||0)))[0];if(last)ACT.dupWk({id:last.id});else setTimeout(()=>toast('Пока нет прошлых тренировок'),400);}
     else{const lc=st.toLowerCase();const tp=S.templates.find(x=>x.name.toLowerCase()===lc)||S.templates.find(x=>x.name.toLowerCase().includes(lc));if(tp)ACT.tplStart({id:tp.id});else setTimeout(()=>toast('Шаблон «'+st+'» не найден'),400);}}
   if(dn&&act){UI.wkView='card';UI.stack=[{key:'wk',id:act.id}];const w=act;if(ovOn(w))ovd()[w.id]=true;if(dn==='set')ACT.doneSet({id:w.id});else if(dn==='skip'){const x=curEx(w);if(x)ACT.exSkip({id:w.id,x:x.uid});}}
@@ -1070,7 +1159,7 @@ ACT.tplDelD=p=>{const w=findW(p.id);S.drafts=(S.drafts||[]).filter(d=>d.id!==w.i
 ACT.tplDel=p=>{const i=S.templates.findIndex(t=>t.id===p.id);if(i<0)return;const[t]=S.templates.splice(i,1);UI.stack.pop();save();paint();toast('Шаблон удалён',()=>{S.templates.splice(i,0,t);});};
 ACT.tplAddEx=p=>{UI.pickQ='';UI.pickG='';UI.pickSet=[];UI.stack.push({key:'pick',mode:'tpl',id:p.id});paint();};
 ACT.tplExDel=p=>{const t=S.templates.find(x=>x.id===p.id);t.exercises.splice(+p.i,1);t.version=(t.version||1)+1;save();paint();};
-ACT.tplStart=p=>{const t=S.templates.find(x=>x.id===p.id);const w={id:uid('w'),date:ld(),type:t.type,gymId:t.gymId||S.lastGym||null,plan:t.minutes||0,startedAt:Date.now(),status:'active',exercises:[]};
+ACT.tplStart=p=>{const t=S.templates.find(x=>x.id===p.id)||(S.plans||[]).find(x=>x.id===p.id);const w={id:uid('w'),date:ld(),type:t.type,gymId:t.gymId||S.lastGym||null,plan:t.minutes||0,startedAt:Date.now(),status:'active',exercises:[]};
   t.exercises.forEach(x=>{const ex=newWEx(x.exId,w);if(!ex.sets.length||!prevWorking(x.exId,w).length){ex.sets=Array.from({length:x.sets||3},()=>({w:x.w||0,r:(exById(x.exId)||{}).timed?0:(x.rmin||0),t:(exById(x.exId)||{}).timed?(x.tsec||30):undefined,done:false,warm:false}));}ex.note=x.note||'';ex.coachNote=x.coachNote||'';w.exercises.push(ex);});
   t.lastUsed=Date.now();UI.wkView='card';S.workouts.push(w);save();UI.stack=[{key:'wk',id:w.id}];paint();};
 ACT.exTpl=p=>{const t=S.templates.find(x=>x.id===p.id);exportFile('template',t,'shablon-'+t.name);};
@@ -1224,7 +1313,7 @@ ACT.planFill=p=>{const w=findW(p.id);if(!w)return;w.plan=estMin(w);save();paint(
 ACT.planPick=p=>{UI.planPick=+p.m||0;paint();};
 CH.bulkv=(p,el)=>{const ps=bulkSets(p.k);if(!ps.length)return;if(p.f==='w'){const v=fromD(Math.max(0,num(el.value)));ps.forEach(s=>s.w=v);}else{const v=Math.max(0,Math.round(num(el.value)));ps.forEach(s=>s.r=v);}save();paint();};
 CH.exCoach=(p,el)=>{const[wid,xid]=p.k.split('|');const x=getWEx(wid,xid).ex;if(x){x.coachNote=el.value;save();}};
-CH.wkDate=(p,el)=>{const w=S.workouts.find(x=>x.id===p.id);if(!w||!el.value)return;w.date=el.value;save();paint();};
+CH.wkDate=(p,el)=>{const w=findW(p.id);if(!w||!el.value)return;w.date=el.value;save();paint();};
 CH.hf=(p,el)=>{UI.hf[p.f]=el.value;paint();};
 CH.progEx=(p,el)=>{UI.progEx=el.value;paint();};
 CH.setv=(p,el)=>{const{s}=getSet(p.k);if(!s)return;if(p.f==='w')s.w=fromD(Math.max(0,num(el.value)));else if(p.f==='t')s.t=Math.max(5,Math.round(num(el.value))||30);else s.r=Math.max(0,Math.round(num(el.value)));save();paint();};
